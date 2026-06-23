@@ -1,0 +1,62 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Python virtual environments and caches
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Environment files (containing secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+backend-flask/.env
+Levlox-Tech-Website/.env
+
+# Uploads and temporary directories
+backend-flask/uploads/resumes/*
+!backend-flask/uploads/resumes/.gitkeep
+backend-flask/uploads/courses/*
+!backend-flask/uploads/courses/.gitkeep
+
+# IDEs and Editors
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
