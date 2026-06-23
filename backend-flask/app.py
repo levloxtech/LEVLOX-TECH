@@ -26,12 +26,8 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
-    allowed_origins = [
-        "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176",
-        "http://127.0.0.1:5173", "http://127.0.0.1:5174", "http://127.0.0.1:5175", "http://127.0.0.1:5176"
-    ]
     CORS(app, resources={
-        r"/api/*":                      {"origins": allowed_origins},
+        r"/api/*":                      {"origins": Config.CORS_ORIGINS},
         r"/api/certificates/verify/*":  {"origins": "*"},  # Public — no restriction
     }, supports_credentials=True)
     
