@@ -59,7 +59,7 @@ const syllabusData = {
   }
 };
 
-export default function CareerPathways({ onSelectCourse }) {
+export default function CareerPathways({ onSelectCourse, onDetailActive }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(() => {
@@ -137,11 +137,14 @@ export default function CareerPathways({ onSelectCourse }) {
       const course = courses.find(c => c._id === selectedDetailCourseId || c.id === selectedDetailCourseId);
       if (course) {
         setSelectedDetailCourse(course);
+        if (onDetailActive) onDetailActive(true);
       } else {
         setSelectedDetailCourse(null);
+        if (onDetailActive) onDetailActive(false);
       }
     } else {
       setSelectedDetailCourse(null);
+      if (onDetailActive) onDetailActive(false);
     }
   }, [courses, selectedDetailCourseId]);
 

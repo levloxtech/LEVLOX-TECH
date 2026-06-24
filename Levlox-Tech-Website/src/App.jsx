@@ -17,6 +17,7 @@ import api from './api/axios';
 export default function App() {
   const [coursesList, setCoursesList] = useState([]);
   const [enrolledCourse, setEnrolledCourse] = useState(null);
+  const [activeDetail, setActiveDetail] = useState(null); // 'company', 'career', or null
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -88,7 +89,7 @@ export default function App() {
     <>
       <Popup />
       <Navbar 
-        isCoursePage={!!enrolledCourse} 
+        isCoursePage={!!enrolledCourse || !!activeDetail} 
         onSelectCourse={handleNavbarSelectCourse} 
       />
       
@@ -99,22 +100,44 @@ export default function App() {
         />
       ) : (
         <main>
-          <div id="hero"><Hero /></div>
-          <div id="proof"><Results /></div>
-          <div id="pathways"><CompanyPathways /></div>
+          {!activeDetail && (
+            <>
+              <div id="hero"><Hero /></div>
+              <div id="proof"><Results /></div>
+            </>
+          )}
+
+          <div id="pathways" style={{ display: activeDetail && activeDetail !== 'company' ? 'none' : 'block' }}>
+            <CompanyPathways 
+              onDetailActive={(isActive) => {
+                setActiveDetail(isActive ? 'company' : null);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }} 
+            />
+          </div>
           
-          <div id="career-pathways">
-            <CareerPathways onSelectCourse={(course) => setEnrolledCourse(course)} />
+          <div id="career-pathways" style={{ display: activeDetail && activeDetail !== 'career' ? 'none' : 'block' }}>
+            <CareerPathways 
+              onDetailActive={(isActive) => {
+                setActiveDetail(isActive ? 'career' : null);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+              }}
+              onSelectCourse={(course) => setEnrolledCourse(course)} 
+            />
           </div>
                   
-          <div id="how-it-works"><HowItWorks /></div>
-          <div id="faq"><FAQ /></div>
-          <div id="founders"><Founders /></div>
-          
-          {/* Certificate Verification Section */}
-          <div id="certificate"><CertificateVerification /></div> 
-          
-          <div id="contact"><Footer /></div>
+          {!activeDetail && (
+            <>
+              <div id="how-it-works"><HowItWorks /></div>
+              <div id="faq"><FAQ /></div>
+              <div id="founders"><Founders /></div>
+              
+              {/* Certificate Verification Section */}
+              <div id="certificate"><CertificateVerification /></div> 
+              
+              <div id="contact"><Footer /></div>
+            </>
+          )}
         </main>
       )}
     </>

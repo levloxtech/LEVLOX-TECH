@@ -53,7 +53,7 @@ const LogoMarquee = () => (
   </div>
 );
 
-export default function CompanyPathways() {
+export default function CompanyPathways({ onDetailActive }) {
   const [hasAccess, setHasAccess] = useState(false);
   const [targetCompany, setTargetCompany] = useState('');
   const [expandedModule, setExpandedModule] = useState(0);
@@ -64,6 +64,9 @@ export default function CompanyPathways() {
 
   const updateHasAccess = (access) => {
     setHasAccess(access);
+    if (onDetailActive) {
+      onDetailActive(access);
+    }
   };
 
   const updateExpandedModule = (idx) => {
