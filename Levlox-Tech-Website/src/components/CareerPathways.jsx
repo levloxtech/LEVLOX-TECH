@@ -255,7 +255,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
           onBack={() => {
             setSelectedDetailCourseId(null);
           }}
-          modules={moduleTitles.length > 0 ? moduleTitles : ["1. Welcome & Roadmap Briefing", "2. High-Impact Fundamentals"]}
+          modules={moduleTitles}
           activeModuleIdx={activeModuleIdx}
           setActiveModuleIdx={setActiveModuleIdx}
           isVideoLocked={isVideoLocked}
