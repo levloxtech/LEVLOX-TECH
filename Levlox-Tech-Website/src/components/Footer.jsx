@@ -29,6 +29,7 @@ export default function Footer() {
       data.append('email', formData.email);
       data.append('phone', formData.phone || 'N/A');
       data.append('help_type', 'Mentorship Request');
+      data.append('company', formData.targetCompany);
       data.append('message', `Goal: ${formData.goal}\nTarget Company: ${formData.targetCompany}\nNotes: ${formData.notes}`);
       if (formData.resume) {
         data.append('resume', formData.resume);

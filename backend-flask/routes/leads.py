@@ -34,6 +34,8 @@ def format_lead(doc):
         doc["activity_history"] = []
     if "location" not in doc:
         doc["location"] = "Unknown"
+    if "company" not in doc:
+        doc["company"] = "Unknown"
     return doc
 
 @leads_bp.route("/", methods=["GET"])
@@ -135,6 +137,7 @@ def create_lead():
     source = data.get("source", "manual")
     status = data.get("status", "New")
     location = data.get("location", "Unknown")
+    company = data.get("company", "Unknown")
 
     if not name or not email or not phone:
         return jsonify({"status": "error", "message": "Name, email, and phone are required fields."}), 400
@@ -147,6 +150,7 @@ def create_lead():
         "source": source,
         "status": status,
         "location": location,
+        "company": company,
         "notes": [],
         "activity_history": [
             {
@@ -236,7 +240,7 @@ def update_lead(lead_id):
         now_str = now.isoformat()
 
         # Check fields and detect changes for activity log
-        for field in ["name", "email", "phone", "source", "location"]:
+        for field in ["name", "email", "phone", "source", "location", "company"]:
             if field in data and data[field] != lead.get(field):
                 update_fields[field] = data[field]
                 activity_logs.append(f"Updated {field} to '{data[field]}'")

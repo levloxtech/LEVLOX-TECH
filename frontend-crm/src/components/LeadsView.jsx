@@ -19,7 +19,8 @@ import {
   Download, 
   MessageSquare, 
   Clock,
-  Printer
+  Printer,
+  Briefcase
 } from 'lucide-react';
 import ExportDropdown from './ExportDropdown';
 import CRMFilterBar from './CRMFilterBar';
@@ -57,7 +58,8 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
     phone: '',
     source: 'manual',
     status: 'New',
-    location: 'Unknown'
+    location: 'Unknown',
+    company: 'Unknown'
   });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -76,12 +78,14 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
     const matchesSearch = 
       lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.phone?.toLowerCase().includes(searchQuery.toLowerCase());
+      lead.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.company?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter ? lead.status === statusFilter : true;
     const matchesSource = sourceFilter ? lead.source === sourceFilter : true;
     const matchesLocation = locationFilter 
-      ? lead.location?.toLowerCase().includes(locationFilter.toLowerCase()) 
+      ? (lead.location?.toLowerCase().includes(locationFilter.toLowerCase()) || 
+         lead.company?.toLowerCase().includes(locationFilter.toLowerCase())) 
       : true;
 
     // Date range match
@@ -153,7 +157,8 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       phone: '',
       source: 'manual',
       status: 'New',
-      location: 'Unknown'
+      location: 'Unknown',
+      company: 'Unknown'
     });
     setFormError('');
     setIsFormOpen(true);
@@ -169,7 +174,8 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       phone: lead.phone,
       source: lead.source || 'manual',
       status: lead.status || 'New',
-      location: lead.location || 'Unknown'
+      location: lead.location || 'Unknown',
+      company: lead.company || 'Unknown'
     });
     setFormError('');
     setIsFormOpen(true);
@@ -329,11 +335,12 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
 
   // Exporters
   const handleExportCSV = async () => {
-    const headers = ['Name', 'Email', 'Phone', 'Location', 'Source', 'Status', 'Created Date'];
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Location', 'Source', 'Status', 'Created Date'];
     const rows = filteredLeads.map(lead => [
       lead.name || '',
       lead.email || '',
       lead.phone || '',
+      lead.company || 'Unknown',
       lead.location || 'Unknown',
       lead.source || '',
       lead.status || '',
@@ -347,6 +354,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       'Name': lead.name || '',
       'Email': lead.email || '',
       'Phone': lead.phone || '',
+      'Company': lead.company || 'Unknown',
       'Location': lead.location || 'Unknown',
       'Source': lead.source || '',
       'Status': lead.status || '',
@@ -356,11 +364,12 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
   };
 
   const handleExportPDF = async () => {
-    const headers = ['Name', 'Email', 'Phone', 'Location', 'Source', 'Status', 'Created Date'];
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Location', 'Source', 'Status', 'Created Date'];
     const rows = filteredLeads.map(l => [
       l.name || '',
       l.email || '',
       l.phone || '',
+      l.company || 'Unknown',
       l.location || 'Unknown',
       l.source || '',
       l.status || '',
@@ -469,7 +478,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
               <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 <th className="py-4 px-6">Name</th>
                 <th className="py-4 px-6">Contact Info</th>
-                <th className="py-4 px-6">Location</th>
+                <th className="py-4 px-6">Company / Location</th>
                 <th className="py-4 px-6">Source</th>
                 <th className="py-4 px-6">Status</th>
                 <th className="py-4 px-6">Created Date</th>
@@ -504,9 +513,15 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                         {lead.phone}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-500 flex items-center gap-1.5 mt-2">
-                      <MapPin size={12} className="text-gray-400" />
-                      {lead.location || 'Unknown'}
+                    <td className="py-4 px-6 space-y-1">
+                      <div className="flex items-center gap-1.5 text-gray-900 font-semibold">
+                        <Briefcase size={12} className="text-gray-400" />
+                        {lead.company || 'Unknown'}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <MapPin size={12} className="text-gray-400" />
+                        {lead.location || 'Unknown'}
+                      </div>
                     </td>
                     <td className="py-4 px-6">
                       <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${getSourceBadge(lead.source)}`}>
@@ -653,6 +668,10 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                     <div className="flex items-center gap-2 text-gray-700">
                       <Phone size={13} className="text-gray-400" />
                       <a href={`tel:${selectedLead.phone}`} className="hover:underline">{selectedLead.phone}</a>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <Briefcase size={13} className="text-gray-400" />
+                      Company: {selectedLead.company || 'Unknown'}
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
                       <MapPin size={13} className="text-gray-400" />
@@ -855,6 +874,18 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none focus:bg-white"
                   placeholder="e.g. 1234567890"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Company</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.company}
+                  onChange={(e) => setFormData({...formData, company: e.target.value})}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none focus:bg-white"
+                  placeholder="e.g. Zoho / Amazon"
                 />
               </div>
 

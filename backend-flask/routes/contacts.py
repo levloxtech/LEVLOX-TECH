@@ -23,6 +23,13 @@ def submit_contact():
     phone = request.form.get("phone", "N/A")
     message = request.form.get("message")
     help_type = request.form.get("help_type") or request.form.get("topic") or "General"
+    company = request.form.get("company")
+
+    if not company and message:
+        import re
+        match = re.search(r"Target Company:\s*(.*)", message, re.IGNORECASE)
+        if match:
+            company = match.group(1).strip()
 
     if not name or not email or not message:
         return jsonify({
@@ -81,6 +88,7 @@ def submit_contact():
         "phone": phone,
         "message": message,
         "help_type": help_type,
+        "company": company or "Unknown",
         "resume_file": resume_file,
         "created_at": datetime.utcnow(),
         "createdAt": datetime.utcnow() # for backwards compatibility with list queries
@@ -98,7 +106,7 @@ def submit_contact():
 
     # Auto-create lead
     lead_source = "contact_with_resume" if resume_file else "contact_form"
-    lead_id = mongo_db.create_lead(name, email, phone, lead_source, resume=resume_info)
+    lead_id = mongo_db.create_lead(name, email, phone, lead_source, company=company, resume=resume_info)
     if not lead_id:
         import logging
         logging.getLogger(__name__).warning("Failed to auto-create lead for contact form submission.")

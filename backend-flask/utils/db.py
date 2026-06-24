@@ -88,8 +88,8 @@ class Database:
         except Exception as e:
             logger.error(f"Error logging email history: {e}")
 
-    def create_lead(self, name, email, phone, source, location=None, video_name=None, watch_percentage=None, resume=None):
-        """Creates a lead entry in the 'leads' collection with location, video details, status flow, and logs."""
+    def create_lead(self, name, email, phone, source, location=None, company=None, video_name=None, watch_percentage=None, resume=None):
+        """Creates a lead entry in the 'leads' collection with location, company, video details, status flow, and logs."""
         db = self.get_db()
         if db is None:
             logger.warning("Database client not initialized. Cannot create lead.")
@@ -103,6 +103,7 @@ class Database:
             "phone": phone,
             "source": source,
             "location": location or "Unknown",
+            "company": company or "Unknown",
             "status": "New",
             "notes": [],
             "activity_history": [
