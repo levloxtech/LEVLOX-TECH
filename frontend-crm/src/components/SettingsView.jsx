@@ -205,7 +205,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
       if (res.ok && data.status === 'success') {
         setProfile(data.profile);
         setInitialProfile(data.profile);
-        if (onProfileUpdate) onProfileUpdate(data.profile);
+        if (onProfileUpdate) onProfileUpdate(data.profile, data.token);
         showToast('Admin Profile updated successfully!');
       } else {
         showToast(data.message || 'Update failed', 'error');
@@ -476,9 +476,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     <input 
                       type="email"
                       name="email"
-                      disabled
+                      required
                       value={profile.email}
-                      className="w-full bg-zinc-50 border border-zinc-100 rounded-xl pl-10 pr-4 py-2.5 text-xs text-zinc-400 outline-none cursor-not-allowed"
+                      onChange={handleProfileChange}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:bg-white focus:border-zinc-300"
                     />
                   </div>
                 </div>

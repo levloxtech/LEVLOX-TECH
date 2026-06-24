@@ -5,7 +5,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    """Placeholder login endpoint."""
+    """Authenticates the administrator using database validation."""
     data = request.get_json() or {}
     email = data.get("email")
     password = data.get("password")
@@ -13,9 +13,34 @@ def login():
     if not email or not password:
         return jsonify({"status": "error", "message": "Email and password are required"}), 400
         
-    # TODO: Implement database validation
-    # For now, return a mock JWT token for testing
+    db = mongo_db.get_db()
+    if db is not None:
+        user = db.users.find_one({"email": email})
+        if user and user.get("password") == password:
+            access_token = create_access_token(identity=email)
+            return jsonify({
+                "status": "success",
+                "message": "Login successful",
+                "token": access_token,
+                "user": {
+                    "email": email,
+                    "role": user.get("role", "admin")
+                }
+            }), 200
+            
+    # Fallback to default credentials and seed them in the DB if not present
     if email == "admin@levlox.com" and password == "admin123":
+        if db is not None:
+            db.users.update_one(
+                {"email": "admin@levlox.com"},
+                {"$set": {
+                    "email": "admin@levlox.com",
+                    "name": "Sri Aakash",
+                    "role": "Super Admin",
+                    "password": "admin123"
+                }},
+                upsert=True
+            )
         access_token = create_access_token(identity=email)
         return jsonify({
             "status": "success",
@@ -23,7 +48,7 @@ def login():
             "token": access_token,
             "user": {
                 "email": email,
-                "role": "admin"
+                "role": "Super Admin"
             }
         }), 200
         

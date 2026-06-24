@@ -9,18 +9,22 @@ admin_bp = Blueprint("admin", __name__)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "admin")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+
 @admin_bp.route("/api/admin/profile", methods=["GET"])
+@jwt_required()
 def get_admin_profile():
     db = mongo_db.get_db()
     if db is None:
         return jsonify({"status": "error", "message": "Database not initialized"}), 500
         
-    profile = db.admin_profiles.find_one({"email": "admin@levlox.com"})
+    current_email = get_jwt_identity()
+    profile = db.admin_profiles.find_one({"email": current_email})
     if not profile:
         # Seed default profile if not present
         default_profile = {
             "name": "Sri Aakash",
-            "email": "admin@levlox.com",
+            "email": current_email,
             "phone": "+91 98765 43210",
             "role": "Super Admin",
             "company": "Levlox Tech",
@@ -39,11 +43,13 @@ def get_admin_profile():
     return jsonify({"status": "success", "profile": profile}), 200
 
 @admin_bp.route("/api/admin/profile", methods=["POST", "PUT"])
+@jwt_required()
 def update_admin_profile():
     db = mongo_db.get_db()
     if db is None:
         return jsonify({"status": "error", "message": "Database not initialized"}), 500
         
+    current_email = get_jwt_identity()
     data = request.get_json() or {}
     
     # Handle image upload if sent via multipart/form-data instead of json
@@ -61,7 +67,7 @@ def update_admin_profile():
 
     # Prepare update query
     update_data = {}
-    allowed_keys = ["name", "phone", "role", "company", "location", "bio", "profileImage"]
+    allowed_keys = ["name", "email", "phone", "role", "company", "location", "bio", "profileImage"]
     for key in allowed_keys:
         if key in data:
             update_data[key] = data[key]
@@ -71,26 +77,51 @@ def update_admin_profile():
     if new_password:
         # Update admin user password in users collection
         db.users.update_one(
-            {"email": "admin@levlox.com"},
-            {"$set": {"password": new_password}} # In production use hashing, but CRM currently checks plain password or matches the mock authentication
+            {"email": current_email},
+            {"$set": {"password": new_password}}
         )
         
     update_data["updatedAt"] = datetime.utcnow()
     
+    # If email is updated, we must update the users collection as well so they can log in with new email!
+    new_email = update_data.get("email")
+    if new_email and new_email != current_email:
+        # Check if the new email is already taken in users collection
+        existing_user = db.users.find_one({"email": new_email})
+        if existing_user:
+            return jsonify({"status": "error", "message": "Email address already in use by another user"}), 400
+            
+        # Update users collection email
+        db.users.update_one(
+            {"email": current_email},
+            {"$set": {"email": new_email}}
+        )
+        
     db.admin_profiles.update_one(
-        {"email": "admin@levlox.com"},
+        {"email": current_email},
         {"$set": update_data},
         upsert=True
     )
     
     # Retrieve updated profile
-    profile = db.admin_profiles.find_one({"email": "admin@levlox.com"})
+    final_email = new_email if new_email else current_email
+    profile = db.admin_profiles.find_one({"email": final_email})
     profile["_id"] = str(profile["_id"])
     
+    # Generate new token if email changed
+    response_data = {
+        "status": "success",
+        "message": "Profile updated successfully",
+        "profile": profile
+    }
+    if new_email and new_email != current_email:
+        new_token = create_access_token(identity=new_email)
+        response_data["token"] = new_token
+        
     # Log CRM action
     mongo_db.log_activity("Admin Profile details updated.")
     
-    return jsonify({"status": "success", "message": "Profile updated successfully", "profile": profile}), 200
+    return jsonify(response_data), 200
 
 @admin_bp.route("/api/admin/profile-image", methods=["DELETE"])
 def delete_profile_image():

@@ -231,7 +231,13 @@ function App() {
           <SettingsView 
             apiUrl={apiUrl} 
             token={token}
-            onProfileUpdate={(updatedProfile) => setAdminProfile(updatedProfile)}
+            onProfileUpdate={(updatedProfile, newToken) => {
+              setAdminProfile(updatedProfile);
+              if (newToken) {
+                localStorage.setItem('token', newToken);
+                setToken(newToken);
+              }
+            }}
           />
         );
       case 'logout':
