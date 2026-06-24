@@ -337,10 +337,10 @@ export default function Footer() {
 
       <div className="footer-container">
         <div className="footer-grid">
-          
+
           {/* LEFT COLUMN: BRAND & CONTACT INFO */}
           <div className="footer-info-col">
-            
+
             <div className="footer-brand">
               <h3>Levlox Tech</h3>
               <p>We're a team of educators and engineers dedicated to helping you build a career you never want to escape from.</p>
@@ -355,7 +355,7 @@ export default function Footer() {
                   </div>
                   <div>
                     <span style={{ display: 'block', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>EMAIL US</span>
-                    <a href="mailto:hello@levloxtech.com">hello@levloxtech.com</a>
+                    <a href="mailto:sales@levlox.in">sales@levlox.in</a>
                   </div>
                 </div>
                 <div className="contact-item">
@@ -377,14 +377,14 @@ export default function Footer() {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 </div>
                 <span style={{ lineHeight: 1.5 }}>
-                  91Springboard, Koramangala<br/>Bangalore, Karnataka 560034
+                  L-2-1754-A, 120 feet road,<br />Anna Nagar, Trichy, Tamil Nadu 620026
                 </span>
               </div>
-              
+
               <div className="social-links">
-                <a href="#" className="social-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-                <a href="#" className="social-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a>
-                <a href="#" className="social-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+                <a href="https://www.linkedin.com/company/levlox-tech/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                <a href="https://www.instagram.com/levloxtech?igsh=MWd1enJvNGxkcWxheQ==" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Tech)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+                <a href="https://www.instagram.com/levloxacademy?igsh=bGV4emdrdHJ1MDd5" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Academy)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
               </div>
             </div>
 
@@ -396,18 +396,18 @@ export default function Footer() {
               <>
                 <h4>Request Mentorship Guidance</h4>
                 <p>Fill out the form below and our team will reach out within 24 hours.</p>
-                
+
                 <form className="form-layout" onSubmit={handleSubmit}>
-                  
+
                   <div className="form-row">
                     <div className="input-group">
                       <label htmlFor="footer-name">Full Name *</label>
-                      <input 
-                        type="text" 
-                        id="footer-name" 
+                      <input
+                        type="text"
+                        id="footer-name"
                         className="form-input"
                         placeholder="John"
-                        required 
+                        required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
@@ -415,12 +415,12 @@ export default function Footer() {
 
                     <div className="input-group">
                       <label htmlFor="footer-email">Email Address *</label>
-                      <input 
-                        type="email" 
-                        id="footer-email" 
+                      <input
+                        type="email"
+                        id="footer-email"
                         className="form-input"
                         placeholder="john@gmail.com"
-                        required 
+                        required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       />
@@ -429,12 +429,12 @@ export default function Footer() {
 
                   <div className="input-group">
                     <label htmlFor="footer-phone">Phone Number *</label>
-                    <input 
-                      type="tel" 
-                      id="footer-phone" 
+                    <input
+                      type="tel"
+                      id="footer-phone"
                       className="form-input"
                       placeholder="+91 98765 43210"
-                      required 
+                      required
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
@@ -443,7 +443,7 @@ export default function Footer() {
                   <div className="form-row">
                     <div className="input-group">
                       <label htmlFor="footer-status">I am a...</label>
-                      <select 
+                      <select
                         id="footer-status"
                         className="form-input"
                         value={formData.status}
@@ -456,11 +456,11 @@ export default function Footer() {
 
                     <div className="input-group">
                       <label htmlFor="footer-resume">Upload Resume *</label>
-                      <input 
-                        type="file" 
-                        id="footer-resume" 
+                      <input
+                        type="file"
+                        id="footer-resume"
                         className="form-input"
-                        style={{ padding: '11px 16px' }} 
+                        style={{ padding: '11px 16px' }}
                         accept=".pdf,.doc,.docx"
                         required
                         onChange={(e) => setFormData({ ...formData, resume: e.target.files[0] })}
@@ -470,32 +470,32 @@ export default function Footer() {
 
                   <div className="input-group">
                     <label htmlFor="footer-goal">What Is Your Core Goal?</label>
-                    <input 
-                      type="text" 
-                      id="footer-goal" 
+                    <input
+                      type="text"
+                      id="footer-goal"
                       className="form-input"
                       placeholder="e.g., Transition to a product company"
                       value={formData.goal}
                       onChange={(e) => setFormData({ ...formData, goal: e.target.value })}
                     />
                   </div>
- 
+
                   <div className="input-group">
                     <label htmlFor="footer-company">Target Company / Role</label>
-                    <input 
-                      type="text" 
-                      id="footer-company" 
+                    <input
+                      type="text"
+                      id="footer-company"
                       className="form-input"
                       placeholder="e.g., SDE at Amazon, Full Stack at Startup"
                       value={formData.targetCompany}
                       onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
                     />
                   </div>
- 
+
                   <div className="input-group">
                     <label htmlFor="footer-notes">Additional Context</label>
-                    <textarea 
-                      id="footer-notes" 
+                    <textarea
+                      id="footer-notes"
                       className="form-input"
                       placeholder="Tell us a bit about your current situation so we can best match you with a mentor."
                       value={formData.notes}
@@ -515,7 +515,7 @@ export default function Footer() {
                 </div>
                 <h5>Request Received!</h5>
                 <p>Thank you for reaching out. A Levlox Tech mentor will review your details and contact you within 24 hours.</p>
-                <button 
+                <button
                   className="reset-btn"
                   onClick={() => {
                     setIsSubmitted(false);
