@@ -54,6 +54,10 @@ function App() {
   };
 
   useEffect(() => {
+    document.title = 'Levlox Tech CRM admin panel';
+  }, []);
+
+  useEffect(() => {
     if (token) {
       fetchAdminProfile();
     }

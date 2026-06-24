@@ -145,7 +145,7 @@ export default function PathwayDetailLayout({
         .coming-soon-glass-overlay {
           position: absolute;
           inset: 0;
-          background: rgba(248, 250, 252, 0.6);
+          background: radial-gradient(circle at center, rgba(124, 58, 237, 0.08) 0%, rgba(248, 250, 252, 0.7) 100%);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           display: flex;
@@ -157,11 +157,11 @@ export default function PathwayDetailLayout({
 
         .coming-soon-glass-card {
           background: #ffffff;
-          padding: 60px 40px;
-          border-radius: 32px;
-          max-width: 500px;
+          padding: 56px 48px;
+          border-radius: 28px;
+          max-width: 460px;
           text-align: center;
-          box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08);
           margin: 20px;
           display: flex;
           flex-direction: column;
@@ -170,40 +170,22 @@ export default function PathwayDetailLayout({
           border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
-        .coming-soon-icon-circle {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background-color: #f3e8ff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 28px;
-        }
-
         .coming-soon-card-title {
           font-size: 32px;
-          font-weight: 900;
-          color: #0f172a;
+          font-weight: 850;
+          color: #0b132b; /* Dark Navy Typography */
           margin: 0 0 16px 0;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .coming-soon-decor-line {
-          width: 60px;
-          height: 4px;
-          background-color: #7c3aed;
-          border-radius: 10px;
-          margin-bottom: 24px;
+          letter-spacing: 1.5px;
         }
 
         .coming-soon-card-desc {
-          font-size: 15px;
+          font-size: 14px;
           color: #475569;
           margin: 0;
           line-height: 1.6;
           font-weight: 500;
+          font-family: 'Inter', system-ui, sans-serif;
         }
 
         .enroll-layout {
@@ -429,8 +411,26 @@ export default function PathwayDetailLayout({
         }
 
         @media (max-width: 850px) {
-          .enroll-premium-wrapper { padding: 40px 0 60px 0; }
+          .enroll-premium-wrapper { padding: 100px 0 60px 0; }
           .enroll-header-container { margin-bottom: 24px; }
+          
+          .back-btn-wrapper {
+            padding-left: 8px;
+            margin-bottom: 20px;
+          }
+          .back-btn span {
+            display: none;
+          }
+          .back-btn {
+            padding: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          }
           
           /* Switch to Mobile Stacked View */
           .enroll-layout { display: flex; flex-direction: column; gap: 20px; }
@@ -482,17 +482,7 @@ export default function PathwayDetailLayout({
           {isComingSoon && (
             <div className="coming-soon-glass-overlay">
               <div className="coming-soon-glass-card">
-                <div className="coming-soon-icon-circle">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
-                  </svg>
-                </div>
                 <h2 className="coming-soon-card-title">COMING SOON</h2>
-                <div className="coming-soon-decor-line"></div>
                 <p className="coming-soon-card-desc">
                   This training track is currently under development. Stay tuned for expert syllabus videos, curated notes, and interactive projects!
                 </p>
