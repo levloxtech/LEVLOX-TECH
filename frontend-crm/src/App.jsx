@@ -15,6 +15,7 @@ import ContactsView from './components/ContactsView';
 import CourseManagementView from './components/CourseManagementView';
 import CertificateManagementView from './components/CertificateManagementView';
 import ResultsManagementView from './components/ResultsManagementView';
+import { Eye, EyeOff } from 'lucide-react';
 
 function App() {
   const [activeView, setActiveView] = useState(() => {
@@ -33,6 +34,7 @@ function App() {
   const [loginError, setLoginError] = useState('');
   const [loginEmail, setLoginEmail] = useState('admin@levlox.com');
   const [loginPassword, setLoginPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
   const [adminProfile, setAdminProfile] = useState(null);
 
   // Fetch admin profile details
@@ -260,9 +262,15 @@ function App() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d0e12] via-[#15161e] to-[#0d0e12] p-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.02),transparent)] pointer-events-none" />
-        <div className="w-full max-w-md bg-[#111218]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-8 shadow-2xl relative text-left">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0b0e] p-6 relative overflow-hidden">
+        {/* Background Mesh Gradients */}
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-[#7c3aed]/15 to-[#4f46e5]/10 filter blur-[100px] opacity-70 animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-[#06b6d4]/10 to-[#3b82f6]/15 filter blur-[100px] opacity-70 animate-pulse" style={{ animationDuration: '10s' }} />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+
+        <div className="w-full max-w-md bg-[#12131a]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-[0_20px_50px_-12px_rgba(124,58,237,0.15)] relative text-left z-10">
           <div className="flex flex-col items-center mb-8">
             <img 
               src={logo} 
@@ -286,27 +294,36 @@ function App() {
                 value={loginEmail} 
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
-                className="w-full bg-[#171821] border border-white/5 focus:border-white/20 text-white rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                className="w-full bg-[#181922]/80 border border-white/10 focus:border-[#7c3aed]/50 text-white rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200 focus:ring-4 focus:ring-[#7c3aed]/10"
                 placeholder="admin@levlox.com"
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Password</label>
-              <input 
-                type="password" 
-                value={loginPassword} 
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                className="w-full bg-[#171821] border border-white/5 focus:border-white/20 text-white rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={loginPassword} 
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  className="w-full bg-[#181922]/80 border border-white/10 focus:border-[#7c3aed]/50 text-white rounded-xl pl-4 pr-11 py-3 text-sm outline-none transition-all duration-200 focus:ring-4 focus:ring-[#7c3aed]/10"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-white hover:bg-gray-100 text-black font-bold py-3.5 px-4 rounded-xl text-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-lg shadow-white/5 mt-4"
+              className="w-full bg-gradient-to-r from-white to-gray-100 hover:from-white hover:to-white text-black font-bold py-3.5 px-4 rounded-xl text-xs transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer shadow-lg hover:shadow-white/10 mt-4 border border-white/10"
             >
               {loading ? 'Authenticating...' : 'Sign In To CRM'}
             </button>
