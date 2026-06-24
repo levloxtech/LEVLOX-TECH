@@ -31,10 +31,10 @@ def submit_contact():
         if match:
             company = match.group(1).strip()
 
-    if not name or not email or not message:
+    if not name or not email:
         return jsonify({
             "status": "error",
-            "message": "Name, email, and message are required fields."
+            "message": "Name and email are required fields."
         }), 400
 
     db = mongo_db.get_db()

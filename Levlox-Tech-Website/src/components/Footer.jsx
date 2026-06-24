@@ -17,8 +17,8 @@ export default function Footer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.goal || !formData.targetCompany || !formData.notes) {
-      alert('Please fill in Name, Email, Goal, Company and Context!');
+    if (!formData.name || !formData.email || !formData.phone) {
+      alert('Please fill in Name, Email, and Phone Number!');
       return;
     }
 
@@ -474,12 +474,11 @@ export default function Footer() {
                       id="footer-goal" 
                       className="form-input"
                       placeholder="e.g., Transition to a product company"
-                      required 
                       value={formData.goal}
                       onChange={(e) => setFormData({ ...formData, goal: e.target.value })}
                     />
                   </div>
-
+ 
                   <div className="input-group">
                     <label htmlFor="footer-company">Target Company / Role</label>
                     <input 
@@ -487,19 +486,17 @@ export default function Footer() {
                       id="footer-company" 
                       className="form-input"
                       placeholder="e.g., SDE at Amazon, Full Stack at Startup"
-                      required 
                       value={formData.targetCompany}
                       onChange={(e) => setFormData({ ...formData, targetCompany: e.target.value })}
                     />
                   </div>
-
+ 
                   <div className="input-group">
                     <label htmlFor="footer-notes">Additional Context</label>
                     <textarea 
                       id="footer-notes" 
                       className="form-input"
                       placeholder="Tell us a bit about your current situation so we can best match you with a mentor."
-                      required
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     />

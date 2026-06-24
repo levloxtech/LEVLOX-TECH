@@ -96,7 +96,7 @@ def upload_resume():
             pass
 
     # Auto-create lead
-    mongo_db.create_lead(name, email, phone, "company_pathway", location=target_company, resume=resume_info)
+    mongo_db.create_lead(name, email, phone, "company_pathway", company=target_company, resume=resume_info)
 
     return jsonify({
         "status": "success",
