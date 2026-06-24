@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
-import Logo from './components/Logo';
+import logo from './assets/levlox-logo-light.png';
 import DashboardOverview from './components/DashboardOverview';
 import LeadsView from './components/LeadsView';
 import UsersView from './components/UsersView';
@@ -272,10 +272,11 @@ function App() {
 
         <div className="w-full max-w-md bg-[#12131a]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-10 shadow-[0_20px_50px_-12px_rgba(124,58,237,0.15)] relative text-left z-10">
           <div className="flex flex-col items-center mb-8">
-            <div className="flex items-center gap-3.5 justify-center mb-1">
-              <Logo className="h-10 w-10 text-white" />
-              <span className="text-white text-3xl font-black tracking-tight">LevLox</span>
-            </div>
+            <img 
+              src={logo} 
+              alt="Levlox Logo" 
+              className="h-12 object-contain mb-2" 
+            />
             <p className="text-xs text-gray-400 mt-1">Access secure admin crm terminal</p>
           </div>
 

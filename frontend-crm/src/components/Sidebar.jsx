@@ -1,5 +1,5 @@
 import React from 'react';
-import Logo from './Logo';
+import logo from '../assets/levlox-logo-light.png';
 import { 
   Home, 
   Users,
@@ -48,12 +48,20 @@ const Sidebar = ({ activeView, onViewChange, isOpen, onClose, isCollapsed, setIs
       <div className="h-20 px-6 flex items-center justify-between border-b border-[#1a1a1f]/10 shrink-0">
         <div className={`flex items-center transition-all duration-300 ${isCollapsed && !isOpen ? 'lg:justify-center w-full' : 'gap-3'}`}>
           {isCollapsed && !isOpen ? (
-            <Logo className="h-8 w-8 text-white" />
-          ) : (
-            <div className="flex items-center gap-2.5">
-              <Logo className="h-8 w-8 text-white" />
-              <span className="text-white font-extrabold text-xl tracking-tight">LevLox</span>
+            <div className="w-8 h-8 overflow-hidden flex items-center justify-start shrink-0">
+              <img 
+                src={logo} 
+                alt="Levlox Logo" 
+                className="h-8 max-w-none" 
+                style={{ width: 'auto', objectFit: 'contain' }}
+              />
             </div>
+          ) : (
+            <img 
+              src={logo} 
+              alt="Levlox Logo" 
+              className="h-8 object-contain" 
+            />
           )}
         </div>
         
