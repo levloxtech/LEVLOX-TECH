@@ -32,8 +32,8 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
   const [loginError, setLoginError] = useState('');
-  const [loginEmail, setLoginEmail] = useState('admin@levlox.com');
-  const [loginPassword, setLoginPassword] = useState('admin123');
+  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem('saved_login_email') || 'admin@levlox.com');
+  const [loginPassword, setLoginPassword] = useState(() => localStorage.getItem('saved_login_password') || 'admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [adminProfile, setAdminProfile] = useState(null);
 
@@ -119,6 +119,8 @@ function App() {
       if (res.ok && data.status === 'success') {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('saved_login_email', loginEmail);
+        localStorage.setItem('saved_login_password', loginPassword);
         setToken(data.token);
         setUser(data.user);
       } else {

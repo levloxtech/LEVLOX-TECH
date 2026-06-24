@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/levolox-logo.PNG'; // Assuming you have the exact logo here
 
-export default function Navbar({ onSelectCourse, isCoursePage }) {
+export default function Navbar({ onSelectCourse, isCoursePage, activeDetail, enrolledCourse, onNavbarReset }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0, opacity: 0 });
+
+  // Sync active section when on a course details/pathway page
+  useEffect(() => {
+    if (isCoursePage) {
+      if (enrolledCourse) {
+        setActiveSection('career-pathways');
+      } else if (activeDetail === 'company') {
+        setActiveSection('pathways');
+      } else if (activeDetail === 'career') {
+        setActiveSection('career-pathways');
+      }
+    }
+  }, [isCoursePage, enrolledCourse, activeDetail]);
 
   // 1. Handle Navbar Shadow on Scroll
   useEffect(() => {
@@ -74,8 +87,10 @@ export default function Navbar({ onSelectCourse, isCoursePage }) {
   const handleNavClick = (e, id) => {
     e.preventDefault();
     
-    if (isCoursePage && onSelectCourse) {
-      onSelectCourse(null);
+    if (isCoursePage) {
+      if (onNavbarReset) {
+        onNavbarReset();
+      }
       setTimeout(() => {
         const element = document.getElementById(id);
         if (element) window.scrollTo({ top: element.offsetTop - 70, behavior: 'smooth' });

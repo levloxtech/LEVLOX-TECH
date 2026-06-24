@@ -73,6 +73,11 @@ export default function App() {
     return () => observer.disconnect();
   }, [enrolledCourse]);
 
+  const handleNavbarReset = () => {
+    setEnrolledCourse(null);
+    setActiveDetail(null);
+  };
+
   // Safe handler for Navbar Dropdown clicks
   const handleNavbarSelectCourse = (id) => {
     if (!id) {
@@ -90,13 +95,16 @@ export default function App() {
       <Popup />
       <Navbar 
         isCoursePage={!!enrolledCourse || !!activeDetail} 
+        activeDetail={activeDetail}
+        enrolledCourse={enrolledCourse}
+        onNavbarReset={handleNavbarReset}
         onSelectCourse={handleNavbarSelectCourse} 
       />
       
       {enrolledCourse ? (
         <CourseEnrollPage 
           course={enrolledCourse} 
-          onBack={() => setEnrolledCourse(null)} 
+          onBack={handleNavbarReset} 
         />
       ) : (
         <main>

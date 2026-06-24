@@ -206,6 +206,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
         setProfile(data.profile);
         setInitialProfile(data.profile);
         if (onProfileUpdate) onProfileUpdate(data.profile, data.token);
+        localStorage.setItem('saved_login_email', data.profile.email);
         showToast('Admin Profile updated successfully!');
       } else {
         showToast(data.message || 'Update failed', 'error');
@@ -242,6 +243,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
         })
       });
       if (res.ok) {
+        localStorage.setItem('saved_login_password', passwordForm.newPassword);
         showToast('Security credentials / password updated.');
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       } else {

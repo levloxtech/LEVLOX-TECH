@@ -77,23 +77,32 @@ export default function PathwayDetailLayout({
 
         .back-btn-wrapper {
           text-align: left;
-          margin-bottom: 12px;
+          margin-bottom: 24px;
         }
 
         .back-btn {
-          background: transparent;
+          background: #7c3aed;
           border: none;
-          color: #6b21e8;
-          font-weight: 800;
+          color: #ffffff;
+          font-weight: 700;
           cursor: pointer;
           font-size: 14px;
-          padding: 0;
+          padding: 10px 20px;
+          border-radius: 50px;
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          transition: color 0.2s ease;
+          gap: 8px;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+          transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .back-btn:hover { color: #4f46e5; }
+        .back-btn:hover {
+          background: #6d28d9;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+        }
+        .back-btn:active {
+          transform: translateY(0);
+        }
 
         .course-header-area {
           text-align: center; /* PERFECTLY CENTERS THE TITLE */
@@ -365,7 +374,20 @@ export default function PathwayDetailLayout({
         <div className="enroll-header-container">
           <div className="back-btn-wrapper">
             <button onClick={onBack} className="back-btn">
-              {backLabel}
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>{backLabel ? backLabel.replace(/^[←\s-]+/, '') : 'Back'}</span>
             </button>
           </div>
           <div className="course-header-area">
