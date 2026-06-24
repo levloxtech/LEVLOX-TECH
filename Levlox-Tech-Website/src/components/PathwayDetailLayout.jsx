@@ -12,10 +12,16 @@ export default function PathwayDetailLayout({
   videoUrl,
   formTitle,
   formContent,
-  activeLesson
+  activeLesson,
+  courseStatus
 }) {
   const [mobileTab, setMobileTab] = useState('syllabus');
+  const [isPlaying, setIsPlaying] = useState(false);
   const containerRef = React.useRef(null);
+
+  useEffect(() => {
+    setIsPlaying(false);
+  }, [videoUrl]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -124,6 +130,68 @@ export default function PathwayDetailLayout({
         }
 
         /* ─── DESKTOP 3-COLUMN LAYOUT (PERFECT PROPORTIONS) ─── */
+        .enroll-layout-relative {
+          position: relative;
+          width: 100%;
+        }
+
+        .coming-soon-glass-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(248, 250, 252, 0.4);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .coming-soon-glass-card {
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          padding: 48px 32px;
+          border-radius: 24px;
+          max-width: 480px;
+          text-align: center;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+          margin: 20px;
+        }
+
+        .coming-soon-card-icon {
+          font-size: 48px;
+          margin-bottom: 20px;
+          display: inline-block;
+          animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+
+        .coming-soon-card-title {
+          font-size: 28px;
+          font-weight: 900;
+          color: #0f172a;
+          margin: 0 0 12px 0;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .coming-soon-card-desc {
+          font-size: 14px;
+          color: #475569;
+          margin: 0;
+          line-height: 1.6;
+          font-weight: 500;
+        }
+
         .enroll-layout {
           display: grid;
           grid-template-columns: minmax(280px, 1fr) minmax(400px, 2fr) minmax(300px, 1fr);
@@ -396,44 +464,61 @@ export default function PathwayDetailLayout({
           </div>
         </div>
 
-        <div className="enroll-layout">
-          
-          {/* MOBILE TABS (Hidden on Desktop) */}
-          <div className="mobile-tab-nav">
-            <button 
-              className={`tab-btn ${mobileTab === 'syllabus' ? 'active' : ''}`}
-              onClick={() => setMobileTab('syllabus')}
-            >
-              Course Details
-            </button>
-            <button 
-              className={`tab-btn ${mobileTab === 'form' ? 'active' : ''}`}
-              onClick={() => setMobileTab('form')}
-            >
-              Get Guidance
-            </button>
-          </div>
-
-          {/* COLUMN 1: SYLLABUS */}
-          <div className={`col-syllabus ui-panel ${mobileTab === 'syllabus' ? 'mobile-active' : ''}`}>
-            <h3 className="panel-title">Curriculum Modules</h3>
-            <div className="syllabus-list">
-              {modules.map((mod, i) => (
-                <button
-                  key={i}
-                  className={`syllabus-item ${activeModuleIdx === i ? 'active' : ''}`}
-                  onClick={() => setActiveModuleIdx(i)}
-                >
-                  <span>{!isVideoLocked || i === 0 ? '▶' : '🔒'}</span>
-                  <span style={{ lineHeight: '1.4' }}>{mod}</span>
-                </button>
-              ))}
+        <div className="enroll-layout-relative">
+          {courseStatus === 'coming_soon' && (
+            <div className="coming-soon-glass-overlay">
+              <div className="coming-soon-glass-card">
+                <span className="coming-soon-card-icon">🚀</span>
+                <h2 className="coming-soon-card-title">Coming Soon</h2>
+                <p className="coming-soon-card-desc">
+                  This training track is currently under development. Stay tuned for expert syllabus videos, curated notes, and interactive projects!
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          <div 
+            className="enroll-layout" 
+            style={courseStatus === 'coming_soon' ? { filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' } : {}}
+          >
+            
+            {/* MOBILE TABS (Hidden on Desktop) */}
+            <div className="mobile-tab-nav">
+              <button 
+                className={`tab-btn ${mobileTab === 'syllabus' ? 'active' : ''}`}
+                onClick={() => setMobileTab('syllabus')}
+              >
+                Course Details
+              </button>
+              <button 
+                className={`tab-btn ${mobileTab === 'form' ? 'active' : ''}`}
+                onClick={() => setMobileTab('form')}
+              >
+                Get Guidance
+              </button>
+            </div>
+
+            {/* COLUMN 1: SYLLABUS */}
+            <div className={`col-syllabus ui-panel ${mobileTab === 'syllabus' ? 'mobile-active' : ''}`}>
+              <h3 className="panel-title">Curriculum Modules</h3>
+              <div className="syllabus-list">
+                {modules.map((mod, i) => (
+                  <button
+                    key={i}
+                    className={`syllabus-item ${activeModuleIdx === i ? 'active' : ''}`}
+                    onClick={() => setActiveModuleIdx(i)}
+                  >
+                    <span>{!isVideoLocked || i === 0 ? '▶' : '🔒'}</span>
+                    <span style={{ lineHeight: '1.4' }}>{mod}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
 
           {/* COLUMN 2: VIDEO PLAYER */}
           <div className="col-video">
-            <div className="video-container">
+            <div className="video-container" style={{ position: 'relative' }}>
               {isVideoLocked && activeModuleIdx > 0 ? (
                 <div className="video-locked-overlay">
                   <span style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</span>
@@ -442,6 +527,49 @@ export default function PathwayDetailLayout({
                   </h2>
                   <p style={{ color: '#94a3b8', fontSize: '14px', margin: 0, maxWidth: '300px' }}>
                     Modules for this track are being finalized.
+                  </p>
+                </div>
+              ) : !isPlaying ? (
+                <div 
+                  onClick={() => setIsPlaying(true)}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    padding: '20px',
+                    textAlign: 'center',
+                    zIndex: 10
+                  }}
+                >
+                  {/* Pulsing Play Button */}
+                  <div 
+                    style={{
+                      width: '72px',
+                      height: '72px',
+                      borderRadius: '50%',
+                      backgroundColor: '#7c3aed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 10px 25px rgba(124, 58, 237, 0.4)',
+                      color: '#ffffff',
+                      fontSize: '28px',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    ▶
+                  </div>
+                  <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '800', margin: '0 0 4px 0' }}>
+                    Play Training Video
+                  </h3>
+                  <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                    Click to start watching the lesson video
                   </p>
                 </div>
               ) : (
@@ -454,14 +582,19 @@ export default function PathwayDetailLayout({
                     <video
                       src={videoUrl}
                       controls
+                      autoPlay
                       controlsList="nodownload"
                       style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000' }}
                     />
                   ) : (
                     <iframe
-                      src={videoUrl}
+                      src={(() => {
+                        const sep = videoUrl.includes('?') ? '&' : '?';
+                        return `${videoUrl}${sep}autoplay=1`;
+                      })()}
                       title={title}
                       style={{ width: '100%', height: '100%', border: 'none' }}
+                      allow="autoplay"
                       allowFullScreen
                     ></iframe>
                   )
@@ -494,5 +627,6 @@ export default function PathwayDetailLayout({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

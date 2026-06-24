@@ -627,11 +627,18 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                       : 'border-gray-100 hover:border-gray-300'
                   }`}
                 >
-                  <div className="truncate">
-                    <span className="text-[9px] bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded-md uppercase font-bold tracking-wider">
-                      {c.category || 'Interview'}
-                    </span>
-                    <h5 className="text-xs font-black text-gray-900 mt-1 truncate">{c.title}</h5>
+                  <div className="truncate text-left flex flex-col items-start gap-1">
+                    <div className="flex gap-1.5 flex-wrap">
+                      <span className="text-[8px] bg-zinc-100 text-zinc-800 px-1.5 py-0.5 rounded uppercase font-extrabold tracking-wider">
+                        {c.category || 'General'}
+                      </span>
+                      <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-extrabold tracking-wider ${
+                        c.pathwayType === 'company' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {c.pathwayType === 'company' ? 'Company' : 'Career'}
+                      </span>
+                    </div>
+                    <h5 className="text-xs font-black text-gray-900 truncate w-full">{c.title}</h5>
                   </div>
                   <ChevronRight size={14} className="text-gray-400 shrink-0" />
                 </button>
@@ -940,7 +947,11 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Pathway Type</label>
                   <select
                     value={courseForm.pathwayType}
-                    onChange={(e) => setCourseForm({...courseForm, pathwayType: e.target.value})}
+                    onChange={(e) => setCourseForm({
+                      ...courseForm, 
+                      pathwayType: e.target.value,
+                      is_career_pathway: e.target.value === 'career'
+                    })}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none"
                   >
                     <option value="career">Career Pathway</option>
@@ -968,6 +979,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                   className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none"
                 >
                   <option value="active">Active</option>
+                  <option value="coming_soon">Coming Soon</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
@@ -1073,12 +1085,15 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
                   />
                 </div>
-
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Pathway Type</label>
                   <select
                     value={editCourseForm.pathwayType}
-                    onChange={(e) => setEditCourseForm({...editCourseForm, pathwayType: e.target.value})}
+                    onChange={(e) => setEditCourseForm({
+                      ...editCourseForm, 
+                      pathwayType: e.target.value,
+                      is_career_pathway: e.target.value === 'career'
+                    })}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none"
                   >
                     <option value="career">Career Pathway</option>
@@ -1105,6 +1120,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                   className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none"
                 >
                   <option value="active">Active</option>
+                  <option value="coming_soon">Coming Soon</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>

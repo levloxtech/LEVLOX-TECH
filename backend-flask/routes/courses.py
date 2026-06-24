@@ -318,7 +318,7 @@ def get_career_pathways():
     # Ensure migration has run or defaults exist
     get_courses()
 
-    pathways = list(db.courses.find({"is_career_pathway": True, "status": "active"}))
+    pathways = list(db.courses.find({"is_career_pathway": True, "status": {"$in": ["active", "coming_soon"]}}))
     for p in pathways:
         p["_id"] = str(p["_id"])
     
@@ -332,7 +332,7 @@ def get_company_pathways():
     if db is None:
         return jsonify({"status": "error", "message": "Database not initialized"}), 500
     
-    pathways = list(db.courses.find({"pathwayType": "company", "status": "active"}))
+    pathways = list(db.courses.find({"pathwayType": "company", "status": {"$in": ["active", "coming_soon"]}}))
     for p in pathways:
         p["_id"] = str(p["_id"])
         

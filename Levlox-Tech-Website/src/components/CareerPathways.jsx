@@ -257,6 +257,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
           isVideoLocked={isVideoLocked}
           videoUrl={videoUrl}
           activeLesson={activeLesson}
+          courseStatus={selectedDetailCourse?.status || detailCourseData?.course?.status}
           formTitle="Need Help With Your Career?"
           formContent={
             <form onSubmit={handleMentorshipSubmit}>

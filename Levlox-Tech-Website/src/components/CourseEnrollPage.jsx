@@ -15,8 +15,12 @@ export default function CourseEnrollPage({ course, onBack }) {
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [expandedModules, setExpandedModules] = useState({ 0: true });
-
+  const [isPlaying, setIsPlaying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    setIsPlaying(false);
+  }, [activeModuleIdx, activeLessonIdx]);
 
   useEffect(() => {
     const fetchPlayerData = async () => {
@@ -503,14 +507,75 @@ export default function CourseEnrollPage({ course, onBack }) {
                     {course.title.replace(/[^a-zA-Z0-9\s]/g, '').trim()}: {activeModule ? activeModule.title.replace(/Module \d+:\s*/, '') : ''}
                   </h2>
                   
-                  <div className="video-box" style={{ background: '#1e293b' }}>
-                    {activeLesson.video_url ? (
-                      <iframe
-                        src={activeLesson.video_url}
-                        title={activeLesson.title}
-                        style={{ width: '100%', height: '100%', border: 'none' }}
-                        allowFullScreen
-                      ></iframe>
+                  <div className="video-box" style={{ background: '#1e293b', position: 'relative' }}>
+                    {!isPlaying ? (
+                      <div 
+                        onClick={() => setIsPlaying(true)}
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          padding: '20px',
+                          textAlign: 'center',
+                          zIndex: 10
+                        }}
+                      >
+                        <div 
+                          style={{
+                            width: '72px',
+                            height: '72px',
+                            borderRadius: '50%',
+                            backgroundColor: '#7c3aed',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 10px 25px rgba(124, 58, 237, 0.4)',
+                            color: '#ffffff',
+                            fontSize: '28px',
+                            marginBottom: '16px'
+                          }}
+                        >
+                          ▶
+                        </div>
+                        <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '800', margin: '0 0 4px 0' }}>
+                          Play Lesson Video
+                        </h3>
+                        <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                          Click to start watching the video
+                        </p>
+                      </div>
+                    ) : activeLesson.video_url ? (
+                      activeLesson.video_url.toLowerCase().endsWith('.mp4') ||
+                      activeLesson.video_url.toLowerCase().endsWith('.webm') ||
+                      activeLesson.video_url.toLowerCase().endsWith('.ogg') ||
+                      activeLesson.video_url.includes('w3schools.com') ||
+                      activeLesson.video_url.includes('/uploads/') ? (
+                        <video
+                          src={activeLesson.video_url}
+                          controls
+                          autoPlay
+                          controlsList="nodownload"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000' }}
+                        />
+                      ) : (
+                        <iframe
+                          src={(() => {
+                            const url = activeLesson.video_url;
+                            const sep = url.includes('?') ? '&' : '?';
+                            return `${url}${sep}autoplay=1`;
+                          })()}
+                          title={activeLesson.title}
+                          style={{ width: '100%', height: '100%', border: 'none' }}
+                          allow="autoplay"
+                          allowFullScreen
+                        ></iframe>
+                      )
                     ) : (
                       <div className="custom-play-overlay" style={{ background: '#1e293b' }}>
                         <div className="round-play-btn" style={{ fontSize: '1rem', width: 'auto', padding: '0 24px', borderRadius: '50px' }}>Play Video</div>

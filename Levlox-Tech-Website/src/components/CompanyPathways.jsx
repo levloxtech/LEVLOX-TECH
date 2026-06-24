@@ -860,6 +860,7 @@ export default function CompanyPathways({ onDetailActive }) {
             isVideoLocked={false}
             videoUrl={videoUrl}
             activeLesson={activeLesson}
+            courseStatus={matchingCourse ? matchingCourse.status : 'coming_soon'}
             formTitle={`Need Personalized Help Getting Into ${targetCompany}?`}
             formContent={
               <form onSubmit={handleMentorshipSubmit}>
