@@ -424,12 +424,25 @@ export default function PathwayDetailLayout({
                 </div>
               ) : (
                 videoUrl ? (
-                  <iframe
-                    src={videoUrl}
-                    title={title}
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    allowFullScreen
-                  ></iframe>
+                  videoUrl.toLowerCase().endsWith('.mp4') ||
+                  videoUrl.toLowerCase().endsWith('.webm') ||
+                  videoUrl.toLowerCase().endsWith('.ogg') ||
+                  videoUrl.includes('w3schools.com') ||
+                  videoUrl.includes('/uploads/') ? (
+                    <video
+                      src={videoUrl}
+                      controls
+                      controlsList="nodownload"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000' }}
+                    />
+                  ) : (
+                    <iframe
+                      src={videoUrl}
+                      title={title}
+                      style={{ width: '100%', height: '100%', border: 'none' }}
+                      allowFullScreen
+                    ></iframe>
+                  )
                 ) : (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div className="play-btn">▶</div>
