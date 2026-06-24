@@ -145,7 +145,7 @@ export default function PathwayDetailLayout({
         .coming-soon-glass-overlay {
           position: absolute;
           inset: 0;
-          background: rgba(248, 250, 252, 0.4);
+          background: rgba(248, 250, 252, 0.6);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           display: flex;
@@ -153,46 +153,53 @@ export default function PathwayDetailLayout({
           justify-content: center;
           z-index: 100;
           border-radius: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .coming-soon-glass-card {
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          padding: 48px 32px;
-          border-radius: 24px;
-          max-width: 480px;
+          background: #ffffff;
+          padding: 60px 40px;
+          border-radius: 32px;
+          max-width: 500px;
           text-align: center;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 30px 60px rgba(15, 23, 42, 0.08);
           margin: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-sizing: border-box;
+          border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
-        .coming-soon-card-icon {
-          font-size: 48px;
-          margin-bottom: 20px;
-          display: inline-block;
-          animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-          100% { transform: translateY(0px); }
+        .coming-soon-icon-circle {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background-color: #f3e8ff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 28px;
         }
 
         .coming-soon-card-title {
-          font-size: 28px;
+          font-size: 32px;
           font-weight: 900;
           color: #0f172a;
-          margin: 0 0 12px 0;
+          margin: 0 0 16px 0;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 0.5px;
+        }
+
+        .coming-soon-decor-line {
+          width: 60px;
+          height: 4px;
+          background-color: #7c3aed;
+          border-radius: 10px;
+          margin-bottom: 24px;
         }
 
         .coming-soon-card-desc {
-          font-size: 14px;
+          font-size: 15px;
           color: #475569;
           margin: 0;
           line-height: 1.6;
@@ -475,8 +482,17 @@ export default function PathwayDetailLayout({
           {isComingSoon && (
             <div className="coming-soon-glass-overlay">
               <div className="coming-soon-glass-card">
-                <span className="coming-soon-card-icon">🚀</span>
-                <h2 className="coming-soon-card-title">Coming Soon</h2>
+                <div className="coming-soon-icon-circle">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
+                  </svg>
+                </div>
+                <h2 className="coming-soon-card-title">COMING SOON</h2>
+                <div className="coming-soon-decor-line"></div>
                 <p className="coming-soon-card-desc">
                   This training track is currently under development. Stay tuned for expert syllabus videos, curated notes, and interactive projects!
                 </p>
