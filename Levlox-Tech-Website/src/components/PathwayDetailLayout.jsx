@@ -5,7 +5,7 @@ export default function PathwayDetailLayout({
   subtitle,
   backLabel,
   onBack,
-  modules,
+  modules = [],
   activeModuleIdx,
   setActiveModuleIdx,
   isVideoLocked,
@@ -18,6 +18,13 @@ export default function PathwayDetailLayout({
   const [mobileTab, setMobileTab] = useState('syllabus');
   const [isPlaying, setIsPlaying] = useState(false);
   const containerRef = React.useRef(null);
+
+  const normalizedStatus = String(courseStatus || '').toLowerCase().trim().replace(/[\s_-]+/g, '_');
+  const isComingSoon = normalizedStatus === 'coming_soon' || !modules || modules.length === 0;
+
+  const displayModules = modules && modules.length > 0 
+    ? modules 
+    : ["1. Welcome & Roadmap Briefing", "2. High-Impact Fundamentals"];
 
   useEffect(() => {
     setIsPlaying(false);
@@ -465,7 +472,7 @@ export default function PathwayDetailLayout({
         </div>
 
         <div className="enroll-layout-relative">
-          {courseStatus === 'coming_soon' && (
+          {isComingSoon && (
             <div className="coming-soon-glass-overlay">
               <div className="coming-soon-glass-card">
                 <span className="coming-soon-card-icon">🚀</span>
@@ -479,7 +486,7 @@ export default function PathwayDetailLayout({
 
           <div 
             className="enroll-layout" 
-            style={courseStatus === 'coming_soon' ? { filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' } : {}}
+            style={isComingSoon ? { filter: 'blur(8px)', pointerEvents: 'none', userSelect: 'none' } : {}}
           >
             
             {/* MOBILE TABS (Hidden on Desktop) */}
@@ -502,7 +509,7 @@ export default function PathwayDetailLayout({
             <div className={`col-syllabus ui-panel ${mobileTab === 'syllabus' ? 'mobile-active' : ''}`}>
               <h3 className="panel-title">Curriculum Modules</h3>
               <div className="syllabus-list">
-                {modules.map((mod, i) => (
+                {displayModules.map((mod, i) => (
                   <button
                     key={i}
                     className={`syllabus-item ${activeModuleIdx === i ? 'active' : ''}`}

@@ -242,6 +242,10 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
     const videoUrl = activeLesson ? activeLesson.video_url : "";
     const isVideoLocked = activeLesson ? false : true;
 
+    console.log("DEBUG: selectedDetailCourse =", selectedDetailCourse);
+    console.log("DEBUG: detailCourseData =", detailCourseData);
+    console.log("DEBUG: courseStatus being passed =", selectedDetailCourse?.status || detailCourseData?.course?.status);
+
     return (
       <div className="career-detail-container">
         <PathwayDetailLayout
