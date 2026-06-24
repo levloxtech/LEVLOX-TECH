@@ -271,6 +271,7 @@ export default function Navbar({ onSelectCourse, isCoursePage }) {
         @media (max-width: 1100px) {
           .nav-desktop-menu { display: none; }
           .nav-cta-btn { display: none; }
+          .nav-desktop-wrapper { display: none !important; }
           .mobile-bottom-nav { display: block; }
           .mobile-header-contact { display: inline-block !important; }
           
@@ -334,7 +335,7 @@ export default function Navbar({ onSelectCourse, isCoursePage }) {
           </a>
 
           {/* Desktop Navigation Items & CTA */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="nav-desktop-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
             <div className="nav-desktop-menu">
               <a href="#hero" className={`nav-link-item ${activeSection === 'hero' ? 'active' : 'inactive'}`} onClick={(e) => handleNavClick(e, 'hero')}>Home</a>
               <a href="#proof" className={`nav-link-item ${activeSection === 'proof' ? 'active' : 'inactive'}`} onClick={(e) => handleNavClick(e, 'proof')}>Results</a>
