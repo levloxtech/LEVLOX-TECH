@@ -13,8 +13,6 @@ const Navbar = ({ viewTitle, unreadCount = 0, onNotifClick, onMenuToggle, onChan
         >
           <Menu size={20} />
         </button>
-        <img src={logo} alt="Levlox Logo" className="h-7 object-contain hidden lg:block" />
-        <div className="h-6 w-px bg-gray-200 hidden lg:block"></div>
         <div>
           <h2 className="text-xl font-bold text-gray-900 capitalize">{viewTitle?.replace('-', ' ')}</h2>
           <p className="text-xs text-gray-500">Levlox Tech CRM admin panel</p>

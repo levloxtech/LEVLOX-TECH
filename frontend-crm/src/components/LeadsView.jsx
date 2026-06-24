@@ -58,7 +58,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
     phone: '',
     source: 'manual',
     status: 'New',
-    location: 'Unknown',
     company: 'Unknown'
   });
   const [formError, setFormError] = useState('');
@@ -84,8 +83,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
     const matchesStatus = statusFilter ? lead.status === statusFilter : true;
     const matchesSource = sourceFilter ? lead.source === sourceFilter : true;
     const matchesLocation = locationFilter 
-      ? (lead.location?.toLowerCase().includes(locationFilter.toLowerCase()) || 
-         lead.company?.toLowerCase().includes(locationFilter.toLowerCase())) 
+      ? lead.company?.toLowerCase().includes(locationFilter.toLowerCase()) 
       : true;
 
     // Date range match
@@ -157,7 +155,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       phone: '',
       source: 'manual',
       status: 'New',
-      location: 'Unknown',
       company: 'Unknown'
     });
     setFormError('');
@@ -174,7 +171,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       phone: lead.phone,
       source: lead.source || 'manual',
       status: lead.status || 'New',
-      location: lead.location || 'Unknown',
       company: lead.company || 'Unknown'
     });
     setFormError('');
@@ -335,13 +331,12 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
 
   // Exporters
   const handleExportCSV = async () => {
-    const headers = ['Name', 'Email', 'Phone', 'Company', 'Location', 'Source', 'Status', 'Created Date'];
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Source', 'Status', 'Created Date'];
     const rows = filteredLeads.map(lead => [
       lead.name || '',
       lead.email || '',
       lead.phone || '',
       lead.company || 'Unknown',
-      lead.location || 'Unknown',
       lead.source || '',
       lead.status || '',
       fmtDate(lead.createdAt)
@@ -355,7 +350,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       'Email': lead.email || '',
       'Phone': lead.phone || '',
       'Company': lead.company || 'Unknown',
-      'Location': lead.location || 'Unknown',
       'Source': lead.source || '',
       'Status': lead.status || '',
       'Created Date': fmtDate(lead.createdAt)
@@ -364,13 +358,12 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
   };
 
   const handleExportPDF = async () => {
-    const headers = ['Name', 'Email', 'Phone', 'Company', 'Location', 'Source', 'Status', 'Created Date'];
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Source', 'Status', 'Created Date'];
     const rows = filteredLeads.map(l => [
       l.name || '',
       l.email || '',
       l.phone || '',
       l.company || 'Unknown',
-      l.location || 'Unknown',
       l.source || '',
       l.status || '',
       fmtDate(l.createdAt)
@@ -462,7 +455,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
 
           <input
             type="text"
-            placeholder="Location..."
+            placeholder="Company..."
             value={locationFilter}
             onChange={(e) => setLocationFilter(e.target.value)}
             className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs outline-none focus:bg-white"
@@ -478,7 +471,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
               <tr className="bg-gray-50/70 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 <th className="py-4 px-6">Name</th>
                 <th className="py-4 px-6">Contact Info</th>
-                <th className="py-4 px-6">Company / Location</th>
+                <th className="py-4 px-6">Company</th>
                 <th className="py-4 px-6">Source</th>
                 <th className="py-4 px-6">Status</th>
                 <th className="py-4 px-6">Created Date</th>
@@ -513,14 +506,10 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                         {lead.phone}
                       </div>
                     </td>
-                    <td className="py-4 px-6 space-y-1">
+                    <td className="py-4 px-6">
                       <div className="flex items-center gap-1.5 text-gray-900 font-semibold">
                         <Briefcase size={12} className="text-gray-400" />
                         {lead.company || 'Unknown'}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <MapPin size={12} className="text-gray-400" />
-                        {lead.location || 'Unknown'}
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -672,10 +661,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                     <div className="flex items-center gap-2 text-gray-700">
                       <Briefcase size={13} className="text-gray-400" />
                       Company: {selectedLead.company || 'Unknown'}
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <MapPin size={13} className="text-gray-400" />
-                      Location: {selectedLead.location || 'Unknown'}
                     </div>
                   </div>
                 </div>
@@ -886,18 +871,6 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                   onChange={(e) => setFormData({...formData, company: e.target.value})}
                   className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none focus:bg-white"
                   placeholder="e.g. Zoho / Amazon"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Location (City, Country)</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.location}
-                  onChange={(e) => setFormData({...formData, location: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none focus:bg-white"
-                  placeholder="e.g. Chennai, India"
                 />
               </div>
 

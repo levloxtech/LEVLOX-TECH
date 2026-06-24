@@ -17,8 +17,8 @@ export default function Footer() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.phone) {
-      alert('Please fill in Name, Email, and Phone Number!');
+    if (!formData.name || !formData.email || !formData.phone || !formData.resume) {
+      alert('Please fill in Name, Email, Phone Number, and upload your Resume!');
       return;
     }
 
@@ -455,13 +455,14 @@ export default function Footer() {
                     </div>
 
                     <div className="input-group">
-                      <label htmlFor="footer-resume">Upload Resume (Optional)</label>
+                      <label htmlFor="footer-resume">Upload Resume *</label>
                       <input 
                         type="file" 
                         id="footer-resume" 
                         className="form-input"
                         style={{ padding: '11px 16px' }} 
                         accept=".pdf,.doc,.docx"
+                        required
                         onChange={(e) => setFormData({ ...formData, resume: e.target.files[0] })}
                       />
                     </div>
