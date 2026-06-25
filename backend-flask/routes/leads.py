@@ -471,9 +471,16 @@ def download_lead_resume(lead_id):
     try:
         lead = db.leads.find_one({"_id": ObjectId(lead_id)})
         if not lead or "resume" not in lead or not lead["resume"].get("filepath"):
-            return jsonify({"status": "error", "message": "Resume not found for this lead"}), 404
+            return jsonify({"status": "error", "message": "Resume info not found in database for this lead"}), 404
 
         filename = lead["resume"]["filepath"]
+        file_full_path = os.path.join(UPLOAD_FOLDER, filename)
+        if not os.path.exists(file_full_path):
+            return jsonify({
+                "status": "error",
+                "message": "Resume file was not found on the server disk. (It may have been cleared during a server restart/redeployment)."
+            }), 404
+
         return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True, download_name=lead["resume"]["filename"])
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

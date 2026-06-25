@@ -301,9 +301,13 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
         document.body.appendChild(a);
         a.click();
         a.remove();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to download resume: ${errData.message || 'File not found on the server. If this is a live Render server, the file might have been cleared during a server restart.'}`);
       }
     } catch (err) {
       console.error(err);
+      alert('Network error while downloading resume.');
     }
   };
 
@@ -323,9 +327,13 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
         document.body.appendChild(a);
         a.click();
         a.remove();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to download resume: ${errData.message || 'File not found on the server. If this is a live Render server, the file might have been cleared during a server restart.'}`);
       }
     } catch (err) {
       console.error(err);
+      alert('Network error while downloading resume.');
     }
   };
 
