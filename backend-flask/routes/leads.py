@@ -412,11 +412,18 @@ def upload_lead_resume(lead_id):
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
+        # Read file content for base64 database storage fallback
+        file.seek(0)
+        file_content = file.read()
+        import base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+
         now = datetime.utcnow()
         now_str = now.isoformat()
         resume_info = {
             "filename": original_filename,
             "filepath": filename,
+            "file_data": file_base64,
             "status": "Pending",  # Store status of resume as requested: Pending/Approved/Rejected
             "uploadedAt": now_str
         }
@@ -476,6 +483,22 @@ def download_lead_resume(lead_id):
         filename = lead["resume"]["filepath"]
         file_full_path = os.path.join(UPLOAD_FOLDER, filename)
         if not os.path.exists(file_full_path):
+            file_data_b64 = lead["resume"].get("file_data")
+            if file_data_b64:
+                import base64
+                import io
+                from flask import send_file
+                try:
+                    file_bytes = base64.b64decode(file_data_b64)
+                    mimetype = "application/pdf" if lead["resume"]["filename"].lower().endswith(".pdf") else "application/octet-stream"
+                    return send_file(
+                        io.BytesIO(file_bytes),
+                        mimetype=mimetype,
+                        as_attachment=True,
+                        download_name=lead["resume"]["filename"]
+                    )
+                except Exception as b64_err:
+                    pass
             return jsonify({
                 "status": "error",
                 "message": "Resume file was not found on the server disk. (It may have been cleared during a server restart/redeployment)."

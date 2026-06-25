@@ -57,11 +57,18 @@ def upload_resume():
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
+    # Read file content for base64 database storage fallback
+    file.seek(0)
+    file_content = file.read()
+    import base64
+    file_base64 = base64.b64encode(file_content).decode('utf-8')
+
     db = mongo_db.get_db()
     
     resume_info = {
         "filename": original_filename,
         "filepath": filename,
+        "file_data": file_base64,
         "status": "Pending",
         "uploadedAt": datetime.utcnow().isoformat()
     }
