@@ -66,17 +66,22 @@ def submit_contact():
                     "message": "File size exceeds the maximum limit of 5 MB."
                 }), 400
 
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            original_filename = secure_filename(file.filename)
-            timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-            unique_filename = f"{timestamp}_{original_filename}"
-            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
-            file.save(filepath)
-            resume_file = f"uploads/resumes/{unique_filename}"
+            from utils.file_storage import save_file_to_gridfs
+            try:
+                gridfs_res = save_file_to_gridfs(file, category="resume")
+            except Exception as e:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Failed to save resume to GridFS: {str(e)}"
+                }), 500
+
+            resume_file = gridfs_res["file_id"]
             
             resume_info = {
-                "filename": original_filename,
-                "filepath": unique_filename,
+                "file_id": gridfs_res["file_id"],
+                "filename": gridfs_res["filename"],
+                "content_type": gridfs_res["content_type"],
+                "size": gridfs_res["size"],
                 "status": "Pending",
                 "uploadedAt": datetime.utcnow().isoformat()
             }
@@ -118,8 +123,8 @@ def submit_contact():
                 "leadId": str(lead_id) if lead_id else None,
                 "name": name,
                 "email": email,
-                "filename": original_filename,
-                "filepath": unique_filename,
+                "filename": resume_info["filename"],
+                "file_id": resume_file,
                 "status": "Pending",
                 "createdAt": datetime.utcnow()
             })

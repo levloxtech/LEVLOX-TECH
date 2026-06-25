@@ -59,11 +59,12 @@ def update_admin_profile():
         if 'profileImage' in request.files:
             file = request.files['profileImage']
             if file.filename != '':
-                filename = werkzeug.utils.secure_filename(file.filename)
-                unique_filename = f"{int(datetime.utcnow().timestamp())}_{filename}"
-                file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-                file.save(file_path)
-                data["profileImage"] = f"/api/uploads/admin/{unique_filename}"
+                from utils.file_storage import save_file_to_gridfs
+                try:
+                    gridfs_res = save_file_to_gridfs(file, category="profile")
+                    data["profileImage"] = f"/api/admin/profile-image/{gridfs_res['file_id']}"
+                except Exception as e:
+                    return jsonify({"status": "error", "message": f"Failed to save profile image: {str(e)}"}), 500
 
     # Prepare update query
     update_data = {}
@@ -143,6 +144,21 @@ def delete_profile_image():
 def get_admin_uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
+@admin_bp.route("/api/admin/profile-image/<file_id>", methods=["GET"])
+def get_gridfs_profile_image(file_id):
+    """Serve profile image from GridFS."""
+    try:
+        from utils.file_storage import get_file_from_gridfs
+        from flask import send_file
+        import io
+        grid_out = get_file_from_gridfs(file_id)
+        return send_file(
+            io.BytesIO(grid_out.read()),
+            mimetype=grid_out.content_type or "image/jpeg"
+        )
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 404
+
 @admin_bp.route("/api/admin/upload-profile", methods=["POST"])
 def upload_admin_profile_image():
     db = mongo_db.get_db()
@@ -170,19 +186,12 @@ def upload_admin_profile_image():
     if size > 10 * 1024 * 1024:
         return jsonify({"status": "error", "message": "File size exceeds 10MB limit"}), 400
         
-    # Save the file
-    import werkzeug.utils
-    from datetime import datetime
-    secured_name = werkzeug.utils.secure_filename(file.filename)
-    unique_filename = f"{int(datetime.utcnow().timestamp())}_{secured_name}"
-    
-    PROFILE_UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "profile")
-    os.makedirs(PROFILE_UPLOAD_FOLDER, exist_ok=True)
-    
-    file_path = os.path.join(PROFILE_UPLOAD_FOLDER, unique_filename)
-    file.save(file_path)
-    
-    image_url = f"/api/uploads/profile/{unique_filename}"
+    from utils.file_storage import save_file_to_gridfs
+    try:
+        gridfs_res = save_file_to_gridfs(file, category="profile")
+        image_url = f"/api/admin/profile-image/{gridfs_res['file_id']}"
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to save profile image: {str(e)}"}), 500
     
     # Update MongoDB admin_profiles collection
     db.admin_profiles.update_one(

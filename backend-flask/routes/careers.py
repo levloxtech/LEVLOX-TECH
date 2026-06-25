@@ -46,29 +46,25 @@ def upload_resume():
             "message": "Invalid file type. Only PDF, DOC, and DOCX are allowed."
         }), 400
 
-    # Ensure uploads directory exists
+    # Ensure uploads directory exists (retained for backward compatibility/temp logs if needed, but not saving file locally)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-    # Secure the filename and save the file
-    original_filename = secure_filename(file.filename)
-    # Append timestamp to make filename unique
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    filename = f"{timestamp}_{original_filename}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
-
-    # Read file content for base64 database storage fallback
-    file.seek(0)
-    file_content = file.read()
-    import base64
-    file_base64 = base64.b64encode(file_content).decode('utf-8')
+    from utils.file_storage import save_file_to_gridfs
+    try:
+        gridfs_res = save_file_to_gridfs(file, category="resume")
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to save resume to GridFS: {str(e)}"
+        }), 500
 
     db = mongo_db.get_db()
     
     resume_info = {
-        "filename": original_filename,
-        "filepath": filename,
-        "file_data": file_base64,
+        "file_id": gridfs_res["file_id"],
+        "filename": gridfs_res["filename"],
+        "content_type": gridfs_res["content_type"],
+        "size": gridfs_res["size"],
         "status": "Pending",
         "uploadedAt": datetime.utcnow().isoformat()
     }
@@ -78,8 +74,8 @@ def upload_resume():
         "name": name,
         "email": email,
         "phone": phone,
-        "filename": filename,
-        "filepath": f"uploads/resumes/{filename}",
+        "filename": gridfs_res["filename"],
+        "file_id": gridfs_res["file_id"],
         "targetCompany": target_company,
         "createdAt": datetime.utcnow()
     }
@@ -96,7 +92,7 @@ def upload_resume():
                 "email": email,
                 "phone": phone,
                 "targetCompany": target_company,
-                "resumeFile": f"uploads/resumes/{filename}",
+                "file_id": gridfs_res["file_id"],
                 "createdAt": datetime.utcnow()
             })
         except Exception as e:

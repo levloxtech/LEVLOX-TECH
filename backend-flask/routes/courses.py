@@ -664,19 +664,39 @@ def upload_file():
     if file.filename == '':
         return jsonify({"status": "error", "message": "No selected file"}), 400
         
-    filename = werkzeug.utils.secure_filename(file.filename)
-    # Add timestamp prefix to avoid collisions
-    unique_filename = f"{int(datetime.utcnow().timestamp())}_{filename}"
-    file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-    file.save(file_path)
-    
-    # We serve uploaded files via flask static or dynamic route
-    file_url = f"/api/uploads/courses/{unique_filename}"
-    return jsonify({"status": "success", "file_url": file_url, "filename": filename}), 200
+    from utils.file_storage import save_file_to_gridfs
+    try:
+        gridfs_res = save_file_to_gridfs(file, category="course")
+        file_url = f"/api/uploads/courses/{gridfs_res['file_id']}"
+        return jsonify({
+            "status": "success", 
+            "file_url": file_url, 
+            "filename": gridfs_res["filename"],
+            "file_id": gridfs_res["file_id"]
+        }), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to upload to GridFS: {str(e)}"}), 500
 
-@courses_bp.route("/api/uploads/courses/<filename>", methods=["GET"])
-def get_uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+@courses_bp.route("/api/uploads/courses/<filename_or_id>", methods=["GET"])
+def get_uploaded_file(filename_or_id):
+    # Try GridFS lookup if filename_or_id is a valid ObjectId
+    if ObjectId.is_valid(filename_or_id):
+        try:
+            from utils.file_storage import get_file_from_gridfs
+            from flask import send_file
+            import io
+            grid_out = get_file_from_gridfs(filename_or_id)
+            return send_file(
+                io.BytesIO(grid_out.read()),
+                mimetype=grid_out.content_type or "application/octet-stream",
+                as_attachment=True,
+                download_name=grid_out.filename
+            )
+        except Exception as e:
+            pass  # Fallback to local file lookup in case it's actually a filename that looks like an ObjectId (unlikely but safe)
+
+    # Local file fallback
+    return send_from_directory(UPLOAD_FOLDER, filename_or_id)
 
 # Course player structure route
 @courses_bp.route("/api/courses/<course_id>/player", methods=["GET"])

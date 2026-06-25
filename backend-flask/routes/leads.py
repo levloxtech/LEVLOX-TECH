@@ -406,24 +406,22 @@ def upload_lead_resume(lead_id):
         return jsonify({"status": "error", "message": "Invalid file type. Allowed: PDF, DOC, DOCX"}), 400
 
     try:
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-        original_filename = secure_filename(file.filename)
-        filename = f"{lead_id}_{int(datetime.utcnow().timestamp())}_{original_filename}"
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(filepath)
-
-        # Read file content for base64 database storage fallback
-        file.seek(0)
-        file_content = file.read()
-        import base64
-        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        from utils.file_storage import save_file_to_gridfs
+        try:
+            gridfs_res = save_file_to_gridfs(file, category="resume")
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": f"Failed to save resume to GridFS: {str(e)}"
+            }), 500
 
         now = datetime.utcnow()
         now_str = now.isoformat()
         resume_info = {
-            "filename": original_filename,
-            "filepath": filename,
-            "file_data": file_base64,
+            "file_id": gridfs_res["file_id"],
+            "filename": gridfs_res["filename"],
+            "content_type": gridfs_res["content_type"],
+            "size": gridfs_res["size"],
             "status": "Pending",  # Store status of resume as requested: Pending/Approved/Rejected
             "uploadedAt": now_str
         }
@@ -435,7 +433,7 @@ def upload_lead_resume(lead_id):
                 "$set": {"resume": resume_info},
                 "$push": {
                     "activity_history": {
-                        "activity": f"Uploaded resume: {original_filename}",
+                        "activity": f"Uploaded resume: {gridfs_res['filename']}",
                         "timestamp": now_str
                     }
                 }
@@ -448,8 +446,8 @@ def upload_lead_resume(lead_id):
             "leadId": lead_id,
             "name": lead.get("name"),
             "email": lead.get("email"),
-            "filename": original_filename,
-            "filepath": filename,
+            "filename": gridfs_res["filename"],
+            "file_id": gridfs_res["file_id"],
             "status": "Pending",
             "createdAt": now
         }
@@ -477,33 +475,54 @@ def download_lead_resume(lead_id):
 
     try:
         lead = db.leads.find_one({"_id": ObjectId(lead_id)})
-        if not lead or "resume" not in lead or not lead["resume"].get("filepath"):
+        if not lead or "resume" not in lead:
             return jsonify({"status": "error", "message": "Resume info not found in database for this lead"}), 404
 
-        filename = lead["resume"]["filepath"]
-        file_full_path = os.path.join(UPLOAD_FOLDER, filename)
-        if not os.path.exists(file_full_path):
-            file_data_b64 = lead["resume"].get("file_data")
-            if file_data_b64:
-                import base64
-                import io
-                from flask import send_file
-                try:
-                    file_bytes = base64.b64decode(file_data_b64)
-                    mimetype = "application/pdf" if lead["resume"]["filename"].lower().endswith(".pdf") else "application/octet-stream"
-                    return send_file(
-                        io.BytesIO(file_bytes),
-                        mimetype=mimetype,
-                        as_attachment=True,
-                        download_name=lead["resume"]["filename"]
-                    )
-                except Exception as b64_err:
-                    pass
-            return jsonify({
-                "status": "error",
-                "message": "Resume file was not found on the server disk. (It may have been cleared during a server restart/redeployment)."
-            }), 404
+        # 1. GridFS download path (preferred)
+        file_id = lead["resume"].get("file_id")
+        if file_id:
+            from utils.file_storage import get_file_from_gridfs
+            from flask import send_file
+            import io
+            try:
+                grid_out = get_file_from_gridfs(file_id)
+                return send_file(
+                    io.BytesIO(grid_out.read()),
+                    mimetype=grid_out.content_type or "application/octet-stream",
+                    as_attachment=True,
+                    download_name=lead["resume"].get("filename", "resume")
+                )
+            except Exception as grid_err:
+                return jsonify({"status": "error", "message": f"Failed to retrieve file from GridFS: {str(grid_err)}"}), 500
 
-        return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True, download_name=lead["resume"]["filename"])
+        # 2. Base64 database fallback path
+        file_data_b64 = lead["resume"].get("file_data")
+        if file_data_b64:
+            import base64
+            import io
+            from flask import send_file
+            try:
+                file_bytes = base64.b64decode(file_data_b64)
+                mimetype = "application/pdf" if lead["resume"].get("filename", "").lower().endswith(".pdf") else "application/octet-stream"
+                return send_file(
+                    io.BytesIO(file_bytes),
+                    mimetype=mimetype,
+                    as_attachment=True,
+                    download_name=lead["resume"].get("filename", "resume")
+                )
+            except Exception as b64_err:
+                pass
+
+        # 3. Local disk fallback path
+        filename = lead["resume"].get("filepath")
+        if filename:
+            file_full_path = os.path.join(UPLOAD_FOLDER, filename)
+            if os.path.exists(file_full_path):
+                return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True, download_name=lead["resume"].get("filename", filename))
+
+        return jsonify({
+            "status": "error",
+            "message": "Resume file was not found on the server disk or in GridFS. (It may have been cleared during a server restart/redeployment)."
+        }), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
