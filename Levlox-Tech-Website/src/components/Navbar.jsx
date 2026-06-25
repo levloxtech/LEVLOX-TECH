@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/levolox-logo.PNG'; // Assuming you have the exact logo here
 
-export default function Navbar({ onSelectCourse, isCoursePage, activeDetail, enrolledCourse, onNavbarReset }) {
+export default function Navbar({ onSelectCourse, isCoursePage, isVerifyPage, activeDetail, enrolledCourse, onNavbarReset }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0, opacity: 0 });
@@ -86,6 +86,11 @@ export default function Navbar({ onSelectCourse, isCoursePage, activeDetail, enr
   // 4. Smooth Scroll Click Handler
   const handleNavClick = (e, id) => {
     e.preventDefault();
+    
+    if (isVerifyPage) {
+      window.location.href = '/#' + id;
+      return;
+    }
     
     if (isCoursePage) {
       if (onNavbarReset) {

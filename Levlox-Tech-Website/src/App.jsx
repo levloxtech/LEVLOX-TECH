@@ -90,18 +90,28 @@ export default function App() {
     }
   };
 
+  const isVerifyPage = window.location.pathname.startsWith('/verify/');
+
   return (
     <>
       <Popup />
       <Navbar 
-        isCoursePage={!!enrolledCourse || !!activeDetail} 
+        isCoursePage={isVerifyPage || !!enrolledCourse || !!activeDetail} 
+        isVerifyPage={isVerifyPage}
         activeDetail={activeDetail}
         enrolledCourse={enrolledCourse}
         onNavbarReset={handleNavbarReset}
         onSelectCourse={handleNavbarSelectCourse} 
       />
       
-      {enrolledCourse ? (
+      {isVerifyPage ? (
+        <main style={{ minHeight: 'calc(100vh - 80px)', paddingTop: '90px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+            <CertificateVerification />
+          </div>
+          <div id="contact"><Footer /></div>
+        </main>
+      ) : enrolledCourse ? (
         <CourseEnrollPage 
           course={enrolledCourse} 
           onBack={handleNavbarReset} 
