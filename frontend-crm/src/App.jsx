@@ -29,8 +29,8 @@ function App() {
     return envUrl.endsWith('/api') ? envUrl.slice(0, -4) : envUrl;
   });
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
+  const [token, setToken] = useState(sessionStorage.getItem('token') || '');
+  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('user') || 'null'));
   const [loginError, setLoginError] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -121,8 +121,8 @@ function App() {
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
         setToken(data.token);
         setUser(data.user);
       } else {
@@ -137,8 +137,8 @@ function App() {
 
   // Handle Logout
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setToken('');
     setUser(null);
     setActiveView('dashboard');
@@ -240,7 +240,7 @@ function App() {
             onProfileUpdate={(updatedProfile, newToken) => {
               setAdminProfile(updatedProfile);
               if (newToken) {
-                localStorage.setItem('token', newToken);
+                sessionStorage.setItem('token', newToken);
                 setToken(newToken);
               }
             }}
