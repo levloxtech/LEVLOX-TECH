@@ -29,29 +29,43 @@ def login():
                 }
             }), 200
             
-    # Fallback to default credentials and seed them in the DB if not present
+    # Fallback to default credentials and seed them in the DB if the admin user is not yet created
     if email == "admin@levlox.com" and password == "admin123":
         if db is not None:
-            db.users.update_one(
-                {"email": "admin@levlox.com"},
-                {"$set": {
-                    "email": "admin@levlox.com",
-                    "name": "Sri Aakash",
-                    "role": "Super Admin",
-                    "password": "admin123"
-                }},
-                upsert=True
-            )
-        access_token = create_access_token(identity=email)
-        return jsonify({
-            "status": "success",
-            "message": "Login successful",
-            "token": access_token,
-            "user": {
-                "email": email,
-                "role": "Super Admin"
-            }
-        }), 200
+            existing_user = db.users.find_one({"email": "admin@levlox.com"})
+            if not existing_user:
+                db.users.update_one(
+                    {"email": "admin@levlox.com"},
+                    {"$set": {
+                        "email": "admin@levlox.com",
+                        "name": "Sri Aakash",
+                        "role": "Super Admin",
+                        "password": "admin123"
+                    }},
+                    upsert=True
+                )
+                access_token = create_access_token(identity=email)
+                return jsonify({
+                    "status": "success",
+                    "message": "Login successful",
+                    "token": access_token,
+                    "user": {
+                        "email": email,
+                        "role": "Super Admin"
+                    }
+                }), 200
+        else:
+            # Fallback if DB is not active/available
+            access_token = create_access_token(identity=email)
+            return jsonify({
+                "status": "success",
+                "message": "Login successful",
+                "token": access_token,
+                "user": {
+                    "email": email,
+                    "role": "Super Admin"
+                }
+            }), 200
         
     return jsonify({"status": "error", "message": "Invalid email or password"}), 401
 
