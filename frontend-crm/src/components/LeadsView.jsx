@@ -922,6 +922,10 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:bg-white cursor-pointer font-medium"
+                  >
+                    {STATUS_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
                   </select>
                 </div>
               </div>

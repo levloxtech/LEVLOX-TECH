@@ -686,10 +686,15 @@ def get_uploaded_file(filename_or_id):
             from flask import send_file
             import io
             grid_out = get_file_from_gridfs(filename_or_id)
+            
+            # Allow videos, images, and PDFs to play/render inline in the browser
+            filename_lower = grid_out.filename.lower()
+            is_inline = filename_lower.endswith((".mp4", ".webm", ".ogg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf"))
+            
             return send_file(
                 io.BytesIO(grid_out.read()),
                 mimetype=grid_out.content_type or "application/octet-stream",
-                as_attachment=True,
+                as_attachment=not is_inline,
                 download_name=grid_out.filename
             )
         except Exception as e:
