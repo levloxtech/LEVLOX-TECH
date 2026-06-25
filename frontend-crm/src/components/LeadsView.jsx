@@ -60,6 +60,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
     status: 'New',
     company: 'Unknown'
   });
+  const [formResume, setFormResume] = useState(null);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -157,6 +158,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       status: 'New',
       company: 'Unknown'
     });
+    setFormResume(null);
     setFormError('');
     setIsFormOpen(true);
   };
@@ -173,6 +175,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
       status: lead.status || 'New',
       company: lead.company || 'Unknown'
     });
+    setFormResume(null);
     setFormError('');
     setIsFormOpen(true);
   };
@@ -197,7 +200,24 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
 
       const data = await res.json();
       if (res.ok && data.status === 'success') {
+        const savedLeadId = formMode === 'add' ? data.lead._id : formData.id;
+
+        // Upload resume file if selected
+        if (formResume) {
+          const fileFormData = new FormData();
+          fileFormData.append('resume', formResume);
+          const uploadRes = await fetch(`${apiUrl}/api/leads/${savedLeadId}/resume`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: fileFormData
+          });
+          if (!uploadRes.ok) {
+            console.error('Failed to upload resume file after saving lead');
+          }
+        }
+
         setIsFormOpen(false);
+        setFormResume(null);
         onRefresh();
         if (selectedLead && selectedLead._id === formData.id) {
           fetchLeadDetails(formData.id);
@@ -902,12 +922,18 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:bg-white cursor-pointer font-medium"
-                  >
-                    {STATUS_OPTIONS.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Upload Resume (Optional)</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setFormResume(e.target.files[0])}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-xs outline-none focus:bg-white cursor-pointer"
+                />
               </div>
 
               <button
