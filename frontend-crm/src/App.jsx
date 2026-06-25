@@ -32,8 +32,8 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
   const [loginError, setLoginError] = useState('');
-  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem('saved_login_email') || 'admin@levlox.com');
-  const [loginPassword, setLoginPassword] = useState(() => localStorage.getItem('saved_login_password') || 'admin123');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [adminProfile, setAdminProfile] = useState(null);
 
@@ -123,8 +123,6 @@ function App() {
       if (res.ok && data.status === 'success') {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('saved_login_email', loginEmail);
-        localStorage.setItem('saved_login_password', loginPassword);
         setToken(data.token);
         setUser(data.user);
       } else {
@@ -286,7 +284,7 @@ function App() {
             <p className="text-xs text-gray-400 mt-1">Access secure admin crm terminal</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
             {loginError && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs py-3 px-4 rounded-xl">
                 {loginError}
@@ -300,6 +298,7 @@ function App() {
                 value={loginEmail} 
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
+                autoComplete="off"
                 className="w-full bg-[#181922]/80 border border-white/10 focus:border-[#7c3aed]/50 text-white rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200 focus:ring-4 focus:ring-[#7c3aed]/10"
                 placeholder="admin@levlox.com"
               />
@@ -313,6 +312,7 @@ function App() {
                   value={loginPassword} 
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
                   className="w-full bg-[#181922]/80 border border-white/10 focus:border-[#7c3aed]/50 text-white rounded-xl pl-4 pr-11 py-3 text-sm outline-none transition-all duration-200 focus:ring-4 focus:ring-[#7c3aed]/10"
                   placeholder="••••••••"
                 />
