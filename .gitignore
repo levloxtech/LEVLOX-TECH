@@ -60,3 +60,8 @@ backend-flask/uploads/courses/*
 Thumbs.db
 desktop.ini
 *.log
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/
