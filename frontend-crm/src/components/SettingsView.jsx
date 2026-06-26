@@ -9,14 +9,6 @@ import {
 const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) => {
   const [urlInput, setUrlInput] = useState(apiUrl);
   
-  const roleLower = (profile?.role || adminProfile?.role || user?.role || '').toLowerCase().replace(/\s+/g, '');
-  const isDeveloper = roleLower === 'superadmin' || roleLower === 'developer';
-
-  const handleResetOverride = () => {
-    localStorage.removeItem('crm_api_url');
-    window.location.reload();
-  };
-  
   // Profile State
   const [profile, setProfile] = useState({
     name: '',
@@ -72,6 +64,15 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) =>
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
+
+  // Developer role check — must be after profile state is declared
+  const roleLower = (profile?.role || adminProfile?.role || user?.role || '').toLowerCase().replace(/\s+/g, '');
+  const isDeveloper = roleLower === 'superadmin' || roleLower === 'developer';
+
+  const handleResetOverride = () => {
+    localStorage.removeItem('crm_api_url');
+    window.location.reload();
+  };
 
   useEffect(() => {
     fetchProfile();
