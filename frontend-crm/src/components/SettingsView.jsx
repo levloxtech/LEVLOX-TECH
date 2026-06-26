@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Save, Server, Shield, User, Mail, Phone, 
+  User, Mail, Phone, 
   Briefcase, Building, MapPin, AlignLeft, 
   Upload, Trash2, Key, Info, CheckCircle,
   Film, FileText, Image, Award
 } from 'lucide-react';
 
 const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) => {
-  const [urlInput, setUrlInput] = useState(apiUrl);
   
   // Profile State
   const [profile, setProfile] = useState({
@@ -65,14 +64,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) =>
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(null);
 
-  // Developer role check — must be after profile state is declared
-  const roleLower = (profile?.role || adminProfile?.role || user?.role || '').toLowerCase().replace(/\s+/g, '');
-  const isDeveloper = roleLower === 'superadmin' || roleLower === 'developer';
 
-  const handleResetOverride = () => {
-    localStorage.removeItem('crm_api_url');
-    window.location.reload();
-  };
 
   useEffect(() => {
     fetchProfile();
@@ -139,11 +131,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) =>
     }
   };
 
-  const handleSystemSubmit = (e) => {
-    e.preventDefault();
-    localStorage.setItem('crm_api_url', urlInput);
-    window.location.reload();
-  };
+
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -671,16 +659,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) =>
           >
             File Uploads
           </button>
-          {isDeveloper && (
-            <button 
-              onClick={() => setActiveTab('developer')}
-              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-                activeTab === 'developer' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
-              }`}
-            >
-              Developer Settings
-            </button>
-          )}
+
         </div>
       </div>
 
@@ -1566,59 +1545,6 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) =>
           )}
 
         </div>
-
-      ) : isDeveloper && activeTab === 'developer' ? (
-        
-        <form onSubmit={handleSystemSubmit} className="glass-card p-6 bg-white border border-gray-100 rounded-3xl space-y-6 text-left animate-fade-in">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-900 font-semibold text-sm">
-              <Server size={18} />
-              <span>Developer Settings - API Override</span>
-            </div>
-            
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-amber-800 text-xs leading-relaxed space-y-1">
-              <p className="font-bold flex items-center gap-1.5">
-                <Shield size={14} /> Local Developer Override
-              </p>
-              <p>
-                Changing the API URL here will only affect this browser session (saved locally in your browser's localStorage). It will <strong>NOT</strong> change the production backend endpoints or configuration in <code>.env</code>.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
-                API Base URL Override
-              </label>
-              <input 
-                type="url" 
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="e.g. http://127.0.0.1:5000"
-                className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-xs focus:outline-none focus:bg-white focus:ring-2 focus:ring-black/5 transition-all duration-200"
-                required
-              />
-              <p className="text-[10px] text-gray-400">
-                Current active endpoint override. If not set, defaults to the production backend config.
-              </p>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-100 pt-6 flex justify-between items-center">
-            <button 
-              type="button"
-              onClick={handleResetOverride}
-              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all px-4 py-2 rounded-full text-xs font-semibold cursor-pointer"
-            >
-              Reset to Environment Default
-            </button>
-            <button 
-              type="submit"
-              className="flex items-center gap-1.5 bg-black text-white hover:bg-gray-800 transition-all px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer shadow-sm"
-            >
-              <Save size={14} /> Save Override
-            </button>
-          </div>
-        </form>
 
       ) : null}
 
