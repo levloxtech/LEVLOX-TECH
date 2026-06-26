@@ -907,13 +907,13 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                             notes_file: l.notes_file || '',
                             assignment_file: l.assignment_file || '',
                             resources_file: l.resources_file || '',
-                            videoSource: l.videoSource || 'upload',
+                            videoSource: l.videoSource || ((l.videoUrl || l.video_url || '').startsWith('http') && !(l.video_url || '').includes('/uploads/') && !(l.video_url || '').includes('/api/') ? 'url' : 'upload'),
                             videoUrl: l.videoUrl || l.video_url || '',
-                            notesSource: l.notesSource || 'upload',
+                            notesSource: l.notesSource || ((l.notesUrl || l.pdf_url || '').startsWith('http') && !(l.pdf_url || '').includes('/uploads/') && !(l.pdf_url || '').includes('/api/') ? 'url' : 'upload'),
                             notesUrl: l.notesUrl || l.pdf_url || '',
-                            sourceCodeSource: l.sourceCodeSource || 'upload',
+                            sourceCodeSource: l.sourceCodeSource || ((l.sourceCodeUrl || l.code_url || '').startsWith('http') && !(l.code_url || '').includes('/uploads/') ? 'url' : 'upload'),
                             sourceCodeUrl: l.sourceCodeUrl || l.code_url || '',
-                            projectSource: l.projectSource || 'upload',
+                            projectSource: l.projectSource || ((l.projectUrl || l.files_url || '').startsWith('http') && !(l.files_url || '').includes('/uploads/') ? 'url' : 'upload'),
                             projectUrl: l.projectUrl || l.files_url || '',
                             order: l.order || 0
                           });
@@ -1318,83 +1318,133 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
               {/* Uploads Section */}
               <div className="border-t border-gray-100 pt-4 space-y-4">
                 <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Syllabus Media Assets & URLs</h5>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Video */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (YouTube or URL Link)</label>
-                    <input
-                      type="text"
-                      value={lessonForm.video_url}
-                      onChange={(e) => setLessonForm({...lessonForm, video_url: e.target.value})}
-                      placeholder="Paste YouTube / video URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload Video File</span>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => setSelectedVideo(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
-                  </div>
-                  
-                  {/* Notes / PDF */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes PDF / URL Link</label>
-                    <input
-                      type="text"
-                      value={lessonForm.pdf_url}
-                      onChange={(e) => setLessonForm({...lessonForm, pdf_url: e.target.value})}
-                      placeholder="Paste PDF / Notes URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload PDF File</span>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => setSelectedPdf(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+
+                  {/* ── Lesson Video ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setLessonForm({...lessonForm, videoSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              lessonForm.videoSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'URL' : 'Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {lessonForm.videoSource === 'url' ? (
+                      <input type="text" value={lessonForm.videoUrl}
+                        onChange={(e) => setLessonForm({...lessonForm, videoUrl: e.target.value})}
+                        placeholder="YouTube / Vimeo / MP4 URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept="video/*"
+                        onChange={(e) => setSelectedVideo(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedVideo && lessonForm.videoSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedVideo.name}</p>
+                    )}
                   </div>
 
-                  {/* Code */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code Repository / URL Link</label>
-                    <input
-                      type="text"
-                      value={lessonForm.code_url}
-                      onChange={(e) => setLessonForm({...lessonForm, code_url: e.target.value})}
-                      placeholder="Paste GitHub / repository URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload ZIP File</span>
-                    <input
-                      type="file"
-                      accept=".zip"
-                      onChange={(e) => setSelectedZip(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+                  {/* ── Lecture Notes ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes (PDF)</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setLessonForm({...lessonForm, notesSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              lessonForm.notesSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'URL' : 'Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {lessonForm.notesSource === 'url' ? (
+                      <input type="text" value={lessonForm.notesUrl}
+                        onChange={(e) => setLessonForm({...lessonForm, notesUrl: e.target.value})}
+                        placeholder="External PDF / Google Drive URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".pdf"
+                        onChange={(e) => setSelectedPdf(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedPdf && lessonForm.notesSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedPdf.name}</p>
+                    )}
                   </div>
 
-                  {/* Files */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files / Resources URL Link</label>
-                    <input
-                      type="text"
-                      value={lessonForm.files_url}
-                      onChange={(e) => setLessonForm({...lessonForm, files_url: e.target.value})}
-                      placeholder="Paste resources URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload ZIP File</span>
-                    <input
-                      type="file"
-                      accept=".zip"
-                      onChange={(e) => setSelectedFiles(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+                  {/* ── Source Code ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Source Code</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setLessonForm({...lessonForm, sourceCodeSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              lessonForm.sourceCodeSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'GitHub URL' : 'ZIP Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {lessonForm.sourceCodeSource === 'url' ? (
+                      <input type="text" value={lessonForm.sourceCodeUrl}
+                        onChange={(e) => setLessonForm({...lessonForm, sourceCodeUrl: e.target.value})}
+                        placeholder="https://github.com/user/repo"
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".zip"
+                        onChange={(e) => setSelectedZip(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedZip && lessonForm.sourceCodeSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedZip.name}</p>
+                    )}
                   </div>
+
+                  {/* ── Project Files ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Project Files</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setLessonForm({...lessonForm, projectSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              lessonForm.projectSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'Drive/URL' : 'ZIP Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {lessonForm.projectSource === 'url' ? (
+                      <input type="text" value={lessonForm.projectUrl}
+                        onChange={(e) => setLessonForm({...lessonForm, projectUrl: e.target.value})}
+                        placeholder="Google Drive / Dropbox / OneDrive URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".zip"
+                        onChange={(e) => setSelectedFiles(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedFiles && lessonForm.projectSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedFiles.name}</p>
+                    )}
+                  </div>
+
                 </div>
               </div>
 
@@ -1493,122 +1543,133 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
               {/* Uploads Section */}
               <div className="border-t border-gray-100 pt-4 space-y-4">
                 <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Syllabus Media Assets & URLs</h5>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Video */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (YouTube or URL Link)</label>
-                    <input
-                      type="text"
-                      value={editLessonForm.video_url}
-                      onChange={(e) => setEditLessonForm({...editLessonForm, video_url: e.target.value})}
-                      placeholder="Paste YouTube / video URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New Video File</span>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => setSelectedVideo(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
-                  </div>
-                  
-                  {/* Notes / PDF */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes PDF / URL Link</label>
-                    <input
-                      type="text"
-                      value={editLessonForm.pdf_url}
-                      onChange={(e) => setEditLessonForm({...editLessonForm, pdf_url: e.target.value})}
-                      placeholder="Paste PDF / Notes URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New PDF File</span>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => setSelectedPdf(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+
+                  {/* ── Lesson Video ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setEditLessonForm({...editLessonForm, videoSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              editLessonForm.videoSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'URL' : 'Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {editLessonForm.videoSource === 'url' ? (
+                      <input type="text" value={editLessonForm.videoUrl}
+                        onChange={(e) => setEditLessonForm({...editLessonForm, videoUrl: e.target.value})}
+                        placeholder="YouTube / Vimeo / MP4 URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept="video/*"
+                        onChange={(e) => setSelectedVideo(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedVideo && editLessonForm.videoSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedVideo.name}</p>
+                    )}
                   </div>
 
-                  {/* Code */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code Repository / URL Link</label>
-                    <input
-                      type="text"
-                      value={editLessonForm.code_url}
-                      onChange={(e) => setEditLessonForm({...editLessonForm, code_url: e.target.value})}
-                      placeholder="Paste GitHub / repository URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New ZIP File</span>
-                    <input
-                      type="file"
-                      accept=".zip"
-                      onChange={(e) => setSelectedZip(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+                  {/* ── Lecture Notes ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes (PDF)</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setEditLessonForm({...editLessonForm, notesSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              editLessonForm.notesSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'URL' : 'Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {editLessonForm.notesSource === 'url' ? (
+                      <input type="text" value={editLessonForm.notesUrl}
+                        onChange={(e) => setEditLessonForm({...editLessonForm, notesUrl: e.target.value})}
+                        placeholder="External PDF / Google Drive URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".pdf"
+                        onChange={(e) => setSelectedPdf(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedPdf && editLessonForm.notesSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedPdf.name}</p>
+                    )}
                   </div>
 
-                  {/* Files */}
-                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files / Resources URL Link</label>
-                    <input
-                      type="text"
-                      value={editLessonForm.files_url}
-                      onChange={(e) => setEditLessonForm({...editLessonForm, files_url: e.target.value})}
-                      placeholder="Paste resources URL..."
-                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
-                    />
-                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New ZIP File</span>
-                    <input
-                      type="file"
-                      accept=".zip"
-                      onChange={(e) => setSelectedFiles(e.target.files[0])}
-                      className="text-[10px] text-gray-500 w-full"
-                    />
+                  {/* ── Source Code ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Source Code</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setEditLessonForm({...editLessonForm, sourceCodeSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              editLessonForm.sourceCodeSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'GitHub URL' : 'ZIP Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {editLessonForm.sourceCodeSource === 'url' ? (
+                      <input type="text" value={editLessonForm.sourceCodeUrl}
+                        onChange={(e) => setEditLessonForm({...editLessonForm, sourceCodeUrl: e.target.value})}
+                        placeholder="https://github.com/user/repo"
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".zip"
+                        onChange={(e) => setSelectedZip(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedZip && editLessonForm.sourceCodeSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedZip.name}</p>
+                    )}
                   </div>
-                </div>
-              </div>
 
-              <div className="border-t border-gray-100 pt-4 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">PDF File URL Path</label>
-                  <input
-                    type="text"
-                    value={editLessonForm.pdf_file}
-                    onChange={(e) => setEditLessonForm({...editLessonForm, pdf_file: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Notes File URL Path</label>
-                  <input
-                    type="text"
-                    value={editLessonForm.notes_file}
-                    onChange={(e) => setEditLessonForm({...editLessonForm, notes_file: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Assignment File URL Path</label>
-                  <input
-                    type="text"
-                    value={editLessonForm.assignment_file}
-                    onChange={(e) => setEditLessonForm({...editLessonForm, assignment_file: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Resources File URL Path</label>
-                  <input
-                    type="text"
-                    value={editLessonForm.resources_file}
-                    onChange={(e) => setEditLessonForm({...editLessonForm, resources_file: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
-                  />
+                  {/* ── Project Files ── */}
+                  <div className="space-y-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-black text-gray-500 uppercase">Project Files</label>
+                      <div className="flex bg-gray-200 p-0.5 rounded-lg">
+                        {['url', 'upload'].map(src => (
+                          <button key={src} type="button"
+                            onClick={() => setEditLessonForm({...editLessonForm, projectSource: src})}
+                            className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                              editLessonForm.projectSource === src ? 'bg-white text-black shadow-sm' : 'text-gray-500'
+                            }`}>{src === 'url' ? 'Drive/URL' : 'ZIP Upload'}</button>
+                        ))}
+                      </div>
+                    </div>
+                    {editLessonForm.projectSource === 'url' ? (
+                      <input type="text" value={editLessonForm.projectUrl}
+                        onChange={(e) => setEditLessonForm({...editLessonForm, projectUrl: e.target.value})}
+                        placeholder="Google Drive / Dropbox / OneDrive URL..."
+                        className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none"
+                      />
+                    ) : (
+                      <input type="file" accept=".zip"
+                        onChange={(e) => setSelectedFiles(e.target.files[0])}
+                        className="text-[10px] text-gray-500 w-full mt-1"
+                      />
+                    )}
+                    {selectedFiles && editLessonForm.projectSource === 'upload' && (
+                      <p className="text-[9px] text-gray-500 truncate">{selectedFiles.name}</p>
+                    )}
+                  </div>
+
                 </div>
               </div>
 

@@ -613,50 +613,98 @@ export default function PathwayDetailLayout({
                     Modules for this track are being finalized.
                   </p>
                 </div>
-              ) : !isPlaying ? (
-                <div 
-                  onClick={() => setIsPlaying(true)}
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    padding: '20px',
-                    textAlign: 'center',
-                    zIndex: 10
-                  }}
-                >
-                  {/* Pulsing Play Button */}
-                  <div 
+              ) : !isPlaying ? (() => {
+                const isYouTube = videoUrl && (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be'));
+                const isVimeo = videoUrl && videoUrl.includes('vimeo.com');
+
+                // Extract YouTube video ID for thumbnail
+                let ytThumb = '';
+                if (isYouTube) {
+                  let ytId = '';
+                  if (videoUrl.includes('youtube.com/watch')) {
+                    try { ytId = new URLSearchParams(new URL(videoUrl).search).get('v') || ''; } catch(e) {}
+                  } else if (videoUrl.includes('youtu.be/')) {
+                    ytId = videoUrl.split('youtu.be/')[1]?.split('?')[0] || '';
+                  } else if (videoUrl.includes('youtube.com/embed/')) {
+                    ytId = videoUrl.split('youtube.com/embed/')[1]?.split('?')[0] || '';
+                  }
+                  if (ytId) ytThumb = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                }
+
+                return (
+                  <div
+                    onClick={() => setIsPlaying(true)}
                     style={{
-                      width: '72px',
-                      height: '72px',
-                      borderRadius: '50%',
-                      backgroundColor: '#7c3aed',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 10px 25px rgba(124, 58, 237, 0.4)',
-                      color: '#ffffff',
-                      fontSize: '28px',
-                      marginBottom: '16px'
+                      position: 'absolute', inset: 0,
+                      background: ytThumb ? 'transparent' : 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', userSelect: 'none',
+                      padding: '20px', textAlign: 'center', zIndex: 10
                     }}
                   >
-                    ▶
+                    {/* YouTube Thumbnail Background */}
+                    {ytThumb && (
+                      <img
+                        src={ytThumb}
+                        alt="Video thumbnail"
+                        style={{
+                          position: 'absolute', inset: 0, width: '100%', height: '100%',
+                          objectFit: 'cover', opacity: 0.85
+                        }}
+                      />
+                    )}
+
+                    {/* Dark overlay for readability on thumbnails */}
+                    {ytThumb && (
+                      <div style={{
+                        position: 'absolute', inset: 0,
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)'
+                      }} />
+                    )}
+
+                    {/* Platform Badge */}
+                    {(isYouTube || isVimeo) && (
+                      <div style={{
+                        position: 'absolute', top: '12px', left: '12px', zIndex: 20,
+                        background: isYouTube ? '#FF0000' : '#1ab7ea',
+                        color: '#fff', fontSize: '9px', fontWeight: '900',
+                        padding: '3px 8px', borderRadius: '4px',
+                        letterSpacing: '0.5px', textTransform: 'uppercase'
+                      }}>
+                        {isYouTube ? '▶ YouTube' : '● Vimeo'}
+                      </div>
+                    )}
+
+                    {/* Play Button Circle */}
+                    <div style={{
+                      width: '72px', height: '72px', borderRadius: '50%',
+                      backgroundColor: isYouTube ? '#FF0000' : '#7c3aed',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: isYouTube ? '0 10px 25px rgba(255,0,0,0.5)' : '0 10px 25px rgba(124, 58, 237, 0.4)',
+                      color: '#ffffff', fontSize: '28px', marginBottom: '12px',
+                      position: 'relative', zIndex: 20
+                    }}>
+                      ▶
+                    </div>
+
+                    <h3 style={{
+                      color: '#ffffff', fontSize: '16px', fontWeight: '800',
+                      margin: '0 0 4px 0', position: 'relative', zIndex: 20,
+                      textShadow: '0 1px 4px rgba(0,0,0,0.6)'
+                    }}>
+                      {isYouTube ? 'Watch on YouTube' : isVimeo ? 'Watch on Vimeo' : 'Play Training Video'}
+                    </h3>
+                    <p style={{
+                      color: '#e2e8f0', fontSize: '12px', margin: 0,
+                      position: 'relative', zIndex: 20,
+                      textShadow: '0 1px 3px rgba(0,0,0,0.6)'
+                    }}>
+                      Click to start watching the lesson video
+                    </p>
                   </div>
-                  <h3 style={{ color: '#ffffff', fontSize: '18px', fontWeight: '800', margin: '0 0 4px 0' }}>
-                    Play Training Video
-                  </h3>
-                  <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
-                    Click to start watching the lesson video
-                  </p>
-                </div>
-              ) : (
+                );
+              })() : (
                 videoUrl ? (
                   activeLesson?.videoSource === 'upload' ||
                   (!activeLesson?.videoSource && (
