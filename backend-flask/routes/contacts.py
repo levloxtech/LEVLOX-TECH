@@ -8,11 +8,7 @@ from utils.date_helpers import parse_date_range_query
 
 contacts_bp = Blueprint("contacts", __name__)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "resumes")
-ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @contacts_bp.route("/api/contact", methods=["POST"])
 def submit_contact():
@@ -50,25 +46,14 @@ def submit_contact():
     if "resume" in request.files:
         file = request.files["resume"]
         if file and file.filename != "":
-            if not allowed_file(file.filename):
-                return jsonify({
-                    "status": "error",
-                    "message": "Invalid file type. Only PDF, DOC, and DOCX are allowed."
-                }), 400
-
-            # Validate file size (max 5 MB)
-            file.seek(0, os.SEEK_END)
-            file_length = file.tell()
-            file.seek(0)
-            if file_length > 5 * 1024 * 1024:
-                return jsonify({
-                    "status": "error",
-                    "message": "File size exceeds the maximum limit of 5 MB."
-                }), 400
-
             from utils.file_storage import save_file_to_gridfs
             try:
                 gridfs_res = save_file_to_gridfs(file, category="resume")
+            except ValueError as val_err:
+                return jsonify({
+                    "status": "error",
+                    "message": str(val_err)
+                }), 400
             except Exception as e:
                 return jsonify({
                     "status": "error",
@@ -80,10 +65,11 @@ def submit_contact():
             resume_info = {
                 "file_id": gridfs_res["file_id"],
                 "filename": gridfs_res["filename"],
+                "original_filename": gridfs_res["original_filename"],
                 "content_type": gridfs_res["content_type"],
-                "size": gridfs_res["size"],
+                "file_size": gridfs_res["size"],
                 "status": "Pending",
-                "uploadedAt": datetime.utcnow().isoformat()
+                "uploaded_at": datetime.utcnow().isoformat()
             }
 
     # Store contact details

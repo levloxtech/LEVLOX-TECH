@@ -22,6 +22,15 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_DAYS", 30)))
     
     # CORS Config
-    CORS_ORIGINS = [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",") if origin.strip()]
-    if not CORS_ORIGINS:
-        CORS_ORIGINS = "*"
+    default_origins = (
+        "http://localhost:5173,"
+        "http://localhost:5174,"
+        "https://levlox-tech-crm.vercel.app,"
+        "https://levloxshowcase.com,"
+        "https://www.levloxshowcase.com"
+    )
+    CORS_ORIGINS = [
+        origin.strip() 
+        for origin in os.getenv("ALLOWED_ORIGINS", default_origins).split(",") 
+        if origin.strip()
+    ]

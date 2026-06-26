@@ -16,10 +16,22 @@ def is_admin(db, email):
         return True
     return False
 
+@upload_settings_bp.route("/api/settings/upload-config", methods=["GET"])
+def get_public_limits():
+    """Retrieve the current file upload settings/limits without authentication."""
+    try:
+        settings = get_upload_settings()
+        return jsonify(settings), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @upload_settings_bp.route("/api/admin/upload-settings", methods=["GET"])
 @jwt_required()
 def get_limits():
-    """Retrieve the current file upload settings/limits."""
+    """Retrieve the current file upload settings/limits (authenticated)."""
     try:
         settings = get_upload_settings()
         return jsonify({

@@ -9,22 +9,29 @@ from datetime import datetime
 from utils.db import mongo_db
 
 DEFAULT_SETTINGS = {
-    "hero_video": {
-        "max_size_mb": 100,
-        "allowed_extensions": ["mp4", "webm", "mov"]
-    },
     "resume": {
-        "max_size_mb": 3,
-        "allowed_extensions": ["pdf", "doc", "docx"]
+        "maxSizeMB": 3,
+        "extensions": ["pdf", "doc", "docx"]
     },
-    "profile_image": {
-        "max_size_mb": 2,
-        "allowed_extensions": ["jpg", "jpeg", "png", "webp"]
+    "heroVideo": {
+        "maxSizeMB": 100,
+        "extensions": ["mp4", "webm", "mov"]
+    },
+    "profileImage": {
+        "maxSizeMB": 2,
+        "extensions": ["jpg", "jpeg", "png", "webp"]
     },
     "certificate": {
-        "max_size_mb": 5,
-        "allowed_extensions": ["pdf", "png", "jpg"]
+        "maxSizeMB": 5,
+        "extensions": ["pdf", "png", "jpg"]
     }
+}
+
+category_map = {
+    "resume": "resume",
+    "hero_video": "heroVideo",
+    "profile_image": "profileImage",
+    "certificate": "certificate"
 }
 
 def get_gridfs():
@@ -101,16 +108,19 @@ def validate_file(file_storage, category):
     
     # Load limits
     settings = get_upload_settings()
-    category_config = settings.get(category)
+    category_key = category_map.get(category, category)
+    category_config = settings.get(category_key)
     if not category_config:
         return False, f"Unknown upload category: {category}", None, None
         
-    allowed_exts = category_config.get("allowed_extensions", [])
-    max_size_mb = category_config.get("max_size_mb", 1)
+    allowed_exts = category_config.get("extensions", [])
+    max_size_mb = category_config.get("maxSizeMB", 1)
     
     # 1. Extension validation
     if ext not in allowed_exts:
-        return False, f"Only {', '.join(allowed_exts).upper()} files are allowed.", None, None
+        # Standard dynamic error message format
+        allowed_list_str = ", ".join(allowed_exts[:-1]).upper() + f" and {allowed_exts[-1].upper()}" if len(allowed_exts) > 1 else allowed_exts[0].upper()
+        return False, f"Only {allowed_list_str} files are allowed.", None, None
         
     # Read file content safely to validate size
     file_storage.seek(0, os.SEEK_END)
@@ -124,10 +134,13 @@ def validate_file(file_storage, category):
     # 3. Size validation
     max_bytes = max_size_mb * 1024 * 1024
     if size_bytes > max_bytes:
-        # Custom message formatting based on category rules
+        # Dynamic error message format
         if category == "resume":
             return False, f"Resume must be less than {max_size_mb} MB.", None, None
-        return False, f"File size exceeds maximum allowed limit of {max_size_mb} MB.", None, None
+        elif category == "hero_video":
+            return False, f"Maximum allowed hero video size is {max_size_mb} MB.", None, None
+        else:
+            return False, f"Maximum allowed {category.replace('_', ' ')} size is {max_size_mb} MB.", None, None
 
     # Read bytes for checksum and storage
     file_content = file_storage.read()

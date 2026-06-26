@@ -17,6 +17,19 @@ export default function CourseEnrollPage({ course, onBack }) {
   const [expandedModules, setExpandedModules] = useState({ 0: true });
   const [isPlaying, setIsPlaying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadConfig, setUploadConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get('/settings/upload-config');
+        setUploadConfig(res.data);
+      } catch (err) {
+        console.error('Failed to load upload configuration', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     setIsPlaying(false);
@@ -67,6 +80,16 @@ export default function CourseEnrollPage({ course, onBack }) {
       formData.append('phone', userPhone);
       formData.append('targetCompany', course.title.replace(/[^a-zA-Z0-9\s]/g, '').trim());
       if (resumeFile) {
+        const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+        const ext = resumeFile.name.split('.').pop().toLowerCase();
+        if (!config.extensions.includes(ext)) {
+          alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+          return;
+        }
+        if (resumeFile.size > config.maxSizeMB * 1024 * 1024) {
+          alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+          return;
+        }
         formData.append('resume', resumeFile);
       }
       formData.append('additionalInfo', `Type: ${userType}`);
@@ -654,7 +677,7 @@ export default function CourseEnrollPage({ course, onBack }) {
             
             <form onSubmit={handleMentorshipSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group">
-                <label>Full Name *</label>
+                <label>Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="text" 
                   required 
@@ -665,7 +688,7 @@ export default function CourseEnrollPage({ course, onBack }) {
               </div>
 
               <div className="form-group">
-                <label>Email Address *</label>
+                <label>Email Address <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="email" 
                   required 
@@ -676,7 +699,7 @@ export default function CourseEnrollPage({ course, onBack }) {
               </div>
 
               <div className="form-group">
-                <label>Phone Number *</label>
+                <label>Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="tel" 
                   required 
@@ -695,13 +718,36 @@ export default function CourseEnrollPage({ course, onBack }) {
               </div>
 
               <div className="form-group">
-                <label>Upload Resume *</label>
+                <label>Upload Resume {!isEnrolled && <span style={{ color: '#ef4444' }}>*</span>}</label>
                 <input 
                   type="file" 
                   required={!isEnrolled} 
-                  accept=".pdf,.doc,.docx" 
-                  onChange={(e) => setResumeFile(e.target.files[0])} 
+                  accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!config.extensions.includes(ext)) {
+                      alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    if (file.size > config.maxSizeMB * 1024 * 1024) {
+                      alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    setResumeFile(file);
+                  }} 
                 />
+                {uploadConfig?.resume && (
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
+                    Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                  </div>
+                )}
               </div>
 
               <button type="submit" disabled={submitting} className="btn-mentorship-submit">

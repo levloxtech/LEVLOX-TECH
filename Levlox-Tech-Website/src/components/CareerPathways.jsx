@@ -80,7 +80,21 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
   const [userPhone, setUserPhone] = useState('');
   const [userType, setUserType] = useState('Student');
   const [resumeFile, setResumeFile] = useState(null);
+  const [userGoal, setUserGoal] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [uploadConfig, setUploadConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get('/settings/upload-config');
+        setUploadConfig(res.data);
+      } catch (err) {
+        console.error('Failed to load upload configuration', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const stripEmojis = (str) => {
     if (!str) return '';
@@ -178,6 +192,15 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
       return;
     }
 
+    if (resumeFile) {
+      const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+      const ext = resumeFile.name.split('.').pop().toLowerCase();
+      if (!config.extensions.includes(ext) || resumeFile.size > config.maxSizeMB * 1024 * 1024) {
+        alert('Invalid file format or size. Please check the resume upload guidelines.');
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const formData = new FormData();
@@ -188,7 +211,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
       if (resumeFile) {
         formData.append('resume', resumeFile);
       }
-      formData.append('additionalInfo', `Type: ${userType}`);
+      formData.append('additionalInfo', `Type: ${userType}${userGoal ? ' | Goal: ' + userGoal : ''}`);
 
       const res = await api.post('/resume-upload', formData, {
         headers: {
@@ -202,6 +225,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
         setUserEmail('');
         setUserPhone('');
         setResumeFile(null);
+        setUserGoal('');
       } else {
         alert(res.data.message || 'Submission failed');
       }
@@ -264,7 +288,43 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
           courseStatus={selectedDetailCourse?.status || detailCourseData?.course?.status}
           formTitle="Need Help With Your Career?"
           formContent={
-            <form onSubmit={handleMentorshipSubmit}>
+            <form onSubmit={handleMentorshipSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="f-group">
+                <label className="f-label">Full Name <span style={{ color: '#ef4444' }}>*</span></label>
+                <input 
+                  type="text" 
+                  required 
+                  value={userName} 
+                  onChange={(e) => setUserName(e.target.value)} 
+                  placeholder="John" 
+                  className="f-input"
+                />
+              </div>
+
+              <div className="f-group">
+                <label className="f-label">Email Address <span style={{ color: '#ef4444' }}>*</span></label>
+                <input 
+                  type="email" 
+                  required 
+                  value={userEmail} 
+                  onChange={(e) => setUserEmail(e.target.value)} 
+                  placeholder="john@gmail.com" 
+                  className="f-input"
+                />
+              </div>
+
+              <div className="f-group">
+                <label className="f-label">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
+                <input 
+                  type="tel" 
+                  required 
+                  value={userPhone} 
+                  onChange={(e) => setUserPhone(e.target.value)} 
+                  placeholder="+91 98765 43210" 
+                  className="f-input"
+                />
+              </div>
+
               <div className="f-group">
                 <label className="f-label">Student / Professional</label>
                 <select 
@@ -278,20 +338,48 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
               </div>
 
               <div className="f-group">
-                <label className="f-label">Upload Resume</label>
+                <label className="f-label">Upload Resume <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="file" 
+                  required
+                  accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
                   className="f-input" 
                   style={{ padding: '10px' }} 
-                  onChange={(e) => setResumeFile(e.target.files[0])}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+                    const fileExt = file.name.split('.').pop().toLowerCase();
+                    if (!config.extensions.includes(fileExt)) {
+                      alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    if (file.size > config.maxSizeMB * 1024 * 1024) {
+                      alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    setResumeFile(file);
+                  }}
                 />
+                {uploadConfig?.resume && (
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
+                    Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                  </div>
+                )}
               </div>
 
               <div className="f-group">
-                <label className="f-label">What Is Your Goal?</label>
+                <label className="f-label">What Is Your Goal? <span style={{ color: '#ef4444' }}>*</span></label>
                 <textarea 
+                  required
                   rows="4" 
                   className="f-input" 
+                  value={userGoal}
+                  onChange={(e) => setUserGoal(e.target.value)}
                   placeholder="Type your target role here..." 
                   style={{ resize: 'vertical' }}
                 ></textarea>

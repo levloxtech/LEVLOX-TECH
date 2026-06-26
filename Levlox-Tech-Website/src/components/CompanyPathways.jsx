@@ -132,6 +132,19 @@ export default function CompanyPathways({ onDetailActive }) {
   const [mentorCompany, setMentorCompany] = useState('');
   const [mentorNotes, setMentorNotes] = useState('');
   const [mentorSubmitting, setMentorSubmitting] = useState(false);
+  const [uploadConfig, setUploadConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get('/settings/upload-config');
+        setUploadConfig(res.data);
+      } catch (err) {
+        console.error('Failed to load upload configuration', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const handleMentorshipSubmit = async (e) => {
     e.preventDefault();
@@ -139,6 +152,13 @@ export default function CompanyPathways({ onDetailActive }) {
       alert('Please fill in Name, Email, Phone, and upload your Resume!');
       return;
     }
+    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+    const ext = mentorResume.name.split('.').pop().toLowerCase();
+    if (!config.extensions.includes(ext) || mentorResume.size > config.maxSizeMB * 1024 * 1024) {
+      alert('Invalid file format or size. Please check the resume upload guidelines.');
+      return;
+    }
+
     setMentorSubmitting(true);
     try {
       const formData = new FormData();
@@ -179,6 +199,13 @@ export default function CompanyPathways({ onDetailActive }) {
     e.preventDefault();
     if (!targetCompany || !userName || !userEmail || !userPhone || !resumeFile) {
       alert('Please fill in all fields and select your resume file!');
+      return;
+    }
+    
+    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+    const ext = resumeFile.name.split('.').pop().toLowerCase();
+    if (!config.extensions.includes(ext) || resumeFile.size > config.maxSizeMB * 1024 * 1024) {
+      alert('Invalid file format or size. Please check the resume upload guidelines.');
       return;
     }
     
@@ -747,7 +774,7 @@ export default function CompanyPathways({ onDetailActive }) {
               <h3 className="form-title">Get Your Custom Company Pathway</h3>
               
               <form onSubmit={handleUnlock}>
-                <label className="form-label">Full Name *</label>
+                <label className="form-label">Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="text" 
                   required 
@@ -757,7 +784,7 @@ export default function CompanyPathways({ onDetailActive }) {
                   placeholder="John" 
                 />
 
-                <label className="form-label">Email Address *</label>
+                <label className="form-label">Email Address <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="email" 
                   required 
@@ -767,7 +794,7 @@ export default function CompanyPathways({ onDetailActive }) {
                   placeholder="john@gmail.com" 
                 />
 
-                <label className="form-label">Phone Number *</label>
+                <label className="form-label">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="tel" 
                   required 
@@ -777,16 +804,39 @@ export default function CompanyPathways({ onDetailActive }) {
                   placeholder="+91 98765 43210" 
                 />
 
-                <label className="form-label">Upload Resume *</label>
+                <label className="form-label">Upload Resume <span style={{ color: '#ef4444' }}>*</span></label>
                 <input 
                   type="file" 
                   required 
-                  accept=".pdf,.doc,.docx" 
-                  onChange={(e) => setResumeFile(e.target.files[0])} 
+                  accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+                    const fileExt = file.name.split('.').pop().toLowerCase();
+                    if (!config.extensions.includes(fileExt)) {
+                      alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    if (file.size > config.maxSizeMB * 1024 * 1024) {
+                      alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+                      e.target.value = '';
+                      setResumeFile(null);
+                      return;
+                    }
+                    setResumeFile(file);
+                  }} 
                   className="form-input-box" 
                 />
+                {uploadConfig?.resume && (
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '-14px', marginBottom: '20px', lineHeight: '1.4' }}>
+                    Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                  </div>
+                )}
                 
-                <label className="form-label">Which Company Do You Want To Get Into? *</label>
+                <label className="form-label">Which Company Do You Want To Get Into? <span style={{ color: '#ef4444' }}>*</span></label>
                 <select 
                   required 
                   value={targetCompany} 
@@ -865,7 +915,7 @@ export default function CompanyPathways({ onDetailActive }) {
             formContent={
               <form onSubmit={handleMentorshipSubmit}>
                 <div className="f-group">
-                  <label className="f-label">Full Name *</label>
+                  <label className="f-label">Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                   <input
                     type="text"
                     required
@@ -877,7 +927,7 @@ export default function CompanyPathways({ onDetailActive }) {
                 </div>
 
                 <div className="f-group">
-                  <label className="f-label">Email Address *</label>
+                  <label className="f-label">Email Address <span style={{ color: '#ef4444' }}>*</span></label>
                   <input
                     type="email"
                     required
@@ -889,7 +939,7 @@ export default function CompanyPathways({ onDetailActive }) {
                 </div>
 
                 <div className="f-group">
-                  <label className="f-label">Phone Number *</label>
+                  <label className="f-label">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
                   <input
                     type="tel"
                     required
@@ -913,15 +963,38 @@ export default function CompanyPathways({ onDetailActive }) {
                 </div>
 
                 <div className="f-group">
-                  <label className="f-label">Upload Resume *</label>
+                  <label className="f-label">Upload Resume <span style={{ color: '#ef4444' }}>*</span></label>
                   <input
                     type="file"
                     required
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setMentorResume(e.target.files[0])}
+                    accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+                      const fileExt = file.name.split('.').pop().toLowerCase();
+                      if (!config.extensions.includes(fileExt)) {
+                        alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+                        e.target.value = '';
+                        setMentorResume(null);
+                        return;
+                      }
+                      if (file.size > config.maxSizeMB * 1024 * 1024) {
+                        alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+                        e.target.value = '';
+                        setMentorResume(null);
+                        return;
+                      }
+                      setMentorResume(file);
+                    }}
                     className="f-input"
                     style={{ padding: '10px' }}
                   />
+                  {uploadConfig?.resume && (
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
+                      Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                    </div>
+                  )}
                 </div>
 
                 <div className="f-group">

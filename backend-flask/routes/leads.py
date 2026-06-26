@@ -10,11 +10,7 @@ from utils.date_helpers import parse_date_range_query
 
 leads_bp = Blueprint("leads", __name__, url_prefix="/api/leads")
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "resumes")
-ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def format_lead(doc):
     """Utility to format MongoDB lead document for response."""
@@ -516,12 +512,7 @@ def download_lead_resume(lead_id):
             except Exception as b64_err:
                 pass
 
-        # 3. Local disk fallback path
-        filename = lead["resume"].get("filepath")
-        if filename:
-            file_full_path = os.path.join(UPLOAD_FOLDER, filename)
-            if os.path.exists(file_full_path):
-                return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True, download_name=lead["resume"].get("filename", filename))
+
 
         return jsonify({
             "status": "error",

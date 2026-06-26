@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 
 export default function Footer() {
@@ -14,11 +14,54 @@ export default function Footer() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadConfig, setUploadConfig] = useState(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await api.get('/settings/upload-config');
+        setUploadConfig(res.data);
+      } catch (err) {
+        console.error('Failed to load upload configuration', err);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (!config.extensions.includes(ext)) {
+      alert(`Only ${config.extensions.join(', ').toUpperCase()} files are allowed.`);
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > config.maxSizeMB * 1024 * 1024) {
+      alert(`Resume must be less than ${config.maxSizeMB} MB.`);
+      e.target.value = '';
+      return;
+    }
+
+    setFormData({ ...formData, resume: file });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone || !formData.resume) {
       alert('Please fill in Name, Email, Phone Number, and upload your Resume!');
+      return;
+    }
+
+    const config = uploadConfig?.resume || { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] };
+    const ext = formData.resume.name.split('.').pop().toLowerCase();
+
+    if (!config.extensions.includes(ext) || formData.resume.size > config.maxSizeMB * 1024 * 1024) {
+      alert('Invalid file format or size. Please check the resume upload guidelines.');
       return;
     }
 
@@ -401,7 +444,7 @@ export default function Footer() {
 
                   <div className="form-row">
                     <div className="input-group">
-                      <label htmlFor="footer-name">Full Name *</label>
+                      <label htmlFor="footer-name">Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                       <input
                         type="text"
                         id="footer-name"
@@ -414,7 +457,7 @@ export default function Footer() {
                     </div>
 
                     <div className="input-group">
-                      <label htmlFor="footer-email">Email Address *</label>
+                      <label htmlFor="footer-email">Email Address <span style={{ color: '#ef4444' }}>*</span></label>
                       <input
                         type="email"
                         id="footer-email"
@@ -428,7 +471,7 @@ export default function Footer() {
                   </div>
 
                   <div className="input-group">
-                    <label htmlFor="footer-phone">Phone Number *</label>
+                    <label htmlFor="footer-phone">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
                     <input
                       type="tel"
                       id="footer-phone"
@@ -455,16 +498,21 @@ export default function Footer() {
                     </div>
 
                     <div className="input-group">
-                      <label htmlFor="footer-resume">Upload Resume *</label>
+                      <label htmlFor="footer-resume">Upload Resume <span style={{ color: '#ef4444' }}>*</span></label>
                       <input
                         type="file"
                         id="footer-resume"
                         className="form-input"
                         style={{ padding: '11px 16px' }}
-                        accept=".pdf,.doc,.docx"
+                        accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
                         required
-                        onChange={(e) => setFormData({ ...formData, resume: e.target.files[0] })}
+                        onChange={handleFileChange}
                       />
+                      {uploadConfig?.resume && (
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
+                          Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                        </div>
+                      )}
                     </div>
                   </div>
 

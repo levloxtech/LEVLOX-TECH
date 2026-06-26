@@ -30,12 +30,12 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     confirmPassword: ''
   });
 
-  // Upload limits state
+  // Upload limits state - completely dynamic camelCase matching MongoDB settings collection
   const [uploadSettings, setUploadSettings] = useState({
-    hero_video: { max_size_mb: 100, allowed_extensions: ['mp4', 'webm', 'mov'] },
-    resume: { max_size_mb: 3, allowed_extensions: ['pdf', 'doc', 'docx'] },
-    profile_image: { max_size_mb: 2, allowed_extensions: ['jpg', 'jpeg', 'png', 'webp'] },
-    certificate: { max_size_mb: 5, allowed_extensions: ['pdf', 'png', 'jpg'] }
+    resume: { maxSizeMB: 3, extensions: ['pdf', 'doc', 'docx'] },
+    heroVideo: { maxSizeMB: 100, extensions: ['mp4', 'webm', 'mov'] },
+    profileImage: { maxSizeMB: 2, extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+    certificate: { maxSizeMB: 5, extensions: ['pdf', 'png', 'jpg'] }
   });
 
   // Hero Video upload state
@@ -134,7 +134,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const limitMb = uploadSettings.profile_image?.max_size_mb || 2;
+    const limitMb = uploadSettings.profileImage?.maxSizeMB || 2;
     // Validate size
     if (file.size > limitMb * 1024 * 1024) {
       showToast(`File size must be less than ${limitMb}MB`, 'error');
@@ -142,7 +142,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     }
 
     // Validate extension
-    const allowedExtensions = uploadSettings.profile_image?.allowed_extensions || ['jpg', 'jpeg', 'png', 'webp'];
+    const allowedExtensions = uploadSettings.profileImage?.extensions || ['jpg', 'jpeg', 'png', 'webp'];
     const extension = file.name.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(extension)) {
       showToast(`Only ${allowedExtensions.join(', ')} images are allowed`, 'error');
@@ -344,7 +344,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     
     if (!file) return;
 
-    const limitMb = uploadSettings.hero_video?.max_size_mb || 100;
+    const limitMb = uploadSettings.heroVideo?.maxSizeMB || 100;
     // Validate size
     if (file.size > limitMb * 1024 * 1024) {
       setHeroVideoError(`Video must be less than ${limitMb}MB.`);
@@ -352,7 +352,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     }
 
     // Validate extension
-    const allowedExtensions = uploadSettings.hero_video?.allowed_extensions || ['mp4', 'webm', 'mov'];
+    const allowedExtensions = uploadSettings.heroVideo?.extensions || ['mp4', 'webm', 'mov'];
     const extension = file.name.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(extension)) {
       setHeroVideoError(`Only ${allowedExtensions.join(', ').toUpperCase()} files are allowed.`);
@@ -392,6 +392,24 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
     xhr.onload = () => {
       setHeroVideoProgress(null);
+      
+      // Handle authentication expired
+      if (xhr.status === 401) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          setHeroVideoError(data.message || 'Authentication expired.');
+        } catch (e) {
+          setHeroVideoError('Authentication expired.');
+        }
+        return;
+      }
+
+      // Handle payload too large
+      if (xhr.status === 413) {
+        setHeroVideoError('Video exceeds maximum size.');
+        return;
+      }
+
       try {
         const data = JSON.parse(xhr.responseText);
         if (xhr.status === 200 && data.status === 'success') {
@@ -403,13 +421,21 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
           setHeroVideoError(data.message || 'Upload failed');
         }
       } catch (e) {
-        setHeroVideoError('Response error from server');
+        if (xhr.status >= 500) {
+          setHeroVideoError('Server unavailable.');
+        } else {
+          setHeroVideoError('Response error from server');
+        }
       }
     };
 
     xhr.onerror = () => {
       setHeroVideoProgress(null);
-      setHeroVideoError('Network communication failed during video upload');
+      if (xhr.status === 0) {
+        setHeroVideoError('CORS configuration error or server unavailable.');
+      } else {
+        setHeroVideoError(`Network communication failed during video upload (Status: ${xhr.status})`);
+      }
     };
 
     xhr.send(formData);
@@ -625,7 +651,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Name</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Full Name <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <div className="relative">
                     <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -641,7 +669,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Email Address <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <div className="relative">
                     <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -656,7 +686,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mobile Number</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Mobile Number <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <div className="relative">
                     <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input 
@@ -757,7 +789,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Current Password</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Current Password <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input 
                     type="password"
                     required
@@ -769,7 +803,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">New Password</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    New Password <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input 
                     type="password"
                     required
@@ -781,7 +817,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Confirm Password</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Confirm Password <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input 
                     type="password"
                     required
@@ -837,10 +875,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                       <input 
                         type="number"
                         min="1"
-                        value={uploadSettings.hero_video?.max_size_mb || 100}
+                        value={uploadSettings.heroVideo?.maxSizeMB || 100}
                         onChange={(e) => setUploadSettings({
                           ...uploadSettings,
-                          hero_video: { ...uploadSettings.hero_video, max_size_mb: parseInt(e.target.value) || 1 }
+                          heroVideo: { ...uploadSettings.heroVideo, maxSizeMB: parseInt(e.target.value) || 1 }
                         })}
                         className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
                       />
@@ -848,7 +886,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     <div className="space-y-1 flex-1">
                       <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(uploadSettings.hero_video?.allowed_extensions || ['mp4', 'webm', 'mov']).map(ext => (
+                        {(uploadSettings.heroVideo?.extensions || ['mp4', 'webm', 'mov']).map(ext => (
                           <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
                         ))}
                       </div>
@@ -870,10 +908,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                       <input 
                         type="number"
                         min="1"
-                        value={uploadSettings.resume?.max_size_mb || 3}
+                        value={uploadSettings.resume?.maxSizeMB || 3}
                         onChange={(e) => setUploadSettings({
                           ...uploadSettings,
-                          resume: { ...uploadSettings.resume, max_size_mb: parseInt(e.target.value) || 1 }
+                          resume: { ...uploadSettings.resume, maxSizeMB: parseInt(e.target.value) || 1 }
                         })}
                         className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
                       />
@@ -881,7 +919,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     <div className="space-y-1 flex-1">
                       <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(uploadSettings.resume?.allowed_extensions || ['pdf', 'doc', 'docx']).map(ext => (
+                        {(uploadSettings.resume?.extensions || ['pdf', 'doc', 'docx']).map(ext => (
                           <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
                         ))}
                       </div>
@@ -903,10 +941,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                       <input 
                         type="number"
                         min="1"
-                        value={uploadSettings.profile_image?.max_size_mb || 2}
+                        value={uploadSettings.profileImage?.maxSizeMB || 2}
                         onChange={(e) => setUploadSettings({
                           ...uploadSettings,
-                          profile_image: { ...uploadSettings.profile_image, max_size_mb: parseInt(e.target.value) || 1 }
+                          profileImage: { ...uploadSettings.profileImage, maxSizeMB: parseInt(e.target.value) || 1 }
                         })}
                         className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
                       />
@@ -914,7 +952,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     <div className="space-y-1 flex-1">
                       <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(uploadSettings.profile_image?.allowed_extensions || ['jpg', 'jpeg', 'png', 'webp']).map(ext => (
+                        {(uploadSettings.profileImage?.extensions || ['jpg', 'jpeg', 'png', 'webp']).map(ext => (
                           <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
                         ))}
                       </div>
@@ -936,10 +974,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                       <input 
                         type="number"
                         min="1"
-                        value={uploadSettings.certificate?.max_size_mb || 5}
+                        value={uploadSettings.certificate?.maxSizeMB || 5}
                         onChange={(e) => setUploadSettings({
                           ...uploadSettings,
-                          certificate: { ...uploadSettings.certificate, max_size_mb: parseInt(e.target.value) || 1 }
+                          certificate: { ...uploadSettings.certificate, maxSizeMB: parseInt(e.target.value) || 1 }
                         })}
                         className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
                       />
@@ -947,7 +985,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     <div className="space-y-1 flex-1">
                       <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(uploadSettings.certificate?.allowed_extensions || ['pdf', 'png', 'jpg']).map(ext => (
+                        {(uploadSettings.certificate?.extensions || ['pdf', 'png', 'jpg']).map(ext => (
                           <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
                         ))}
                       </div>
@@ -1053,7 +1091,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     ) : (
                       <div className="space-y-1">
                         <p className="text-xs font-bold text-gray-600">Drag or click to choose video file</p>
-                        <p className="text-[10px] text-gray-400">MP4, WebM or MOV up to {uploadSettings.hero_video?.max_size_mb || 100}MB</p>
+                        <p className="text-[10px] text-gray-400">MP4, WebM or MOV up to {uploadSettings.heroVideo?.maxSizeMB || 100}MB</p>
                       </div>
                     )}
                   </div>

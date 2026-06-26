@@ -28,8 +28,17 @@ def create_app():
     app.config.from_object(Config)
     
     CORS(app, resources={
-        r"/api/*":                      {"origins": Config.CORS_ORIGINS},
-        r"/api/certificates/verify/*":  {"origins": "*"},  # Public — no restriction
+        r"/api/*": {
+            "origins": Config.CORS_ORIGINS,
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+            "expose_headers": ["Content-Range", "Accept-Ranges", "Content-Disposition", "Content-Length"]
+        },
+        r"/api/certificates/verify/*": {
+            "origins": "*",
+            "methods": ["GET", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Accept"]
+        }
     }, supports_credentials=True)
     
     # Initialize JWT Manager

@@ -6,11 +6,7 @@ from datetime import datetime
 
 careers_bp = Blueprint("careers", __name__)
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads", "resumes")
-ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
 
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @careers_bp.route("/api/resume-upload", methods=["POST"])
 def upload_resume():
