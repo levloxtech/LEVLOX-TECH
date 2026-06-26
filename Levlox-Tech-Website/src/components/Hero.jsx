@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 
-const BRAND_VIDEO_URL = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'; // Replace with actual video
-
 export default function Hero() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
@@ -94,7 +92,6 @@ export default function Hero() {
            border-radius: 16px;
            overflow: hidden;
            box-shadow: 0 20px 40px -12px rgba(107, 33, 232, 0.2);
-           cursor: pointer;
            background: #000;
            border: 1px solid rgba(107, 33, 232, 0.15);
          }
@@ -160,20 +157,21 @@ export default function Hero() {
 
          {/* 2. Video Thumbnail */}
          <div className="hero-video-wrapper">
-           <div className="hero-video-card" onClick={() => setIsPlaying(true)}>
+           <div 
+             className="hero-video-card" 
+             onClick={() => { if (videoUrl) setIsPlaying(true); }}
+             style={{ cursor: videoUrl ? 'pointer' : 'default' }}
+           >
              <img 
                  src={thumbnailUrl || "/brand_story_thumb.png"} 
                  alt="Levlox Brand Story" 
                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
              />
-             
-             {/* <div style={{ position: 'absolute', top: '16px', left: '16px', background: '#6b21e8', color: '#fff', padding: '6px 14px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: '900', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-               ▶ BRAND STORY
-             </div> */}
-             
-             {/* <div className="play-button-overlay">
-               <span style={{ marginLeft: '4px' }}>▶</span>
-             </div> */}
+             {videoUrl && (
+               <div className="play-button-overlay">
+                 <span style={{ marginLeft: '4px' }}>▶</span>
+               </div>
+             )}
            </div>
          </div>
 
@@ -210,7 +208,7 @@ export default function Hero() {
       </div>
 
       {/* Pop-up Video Modal */}
-      {isPlaying && (
+      {isPlaying && videoUrl && (
         <div 
             className="modal-overlay" 
             onClick={() => setIsPlaying(false)} 
@@ -221,24 +219,12 @@ export default function Hero() {
             style={{ position: 'relative', width: '100%', maxWidth: '1000px', background: '#000', borderRadius: '20px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
           >
             <div style={{ position: 'relative', aspectRatio: '16/9' }}>
-              {videoUrl && !videoUrl.includes('youtube.com') && !videoUrl.includes('embed') ? (
-                <video
-                    src={videoUrl}
-                    controls
-                    autoPlay
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', border: 'none' }}
-                />
-              ) : (
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src={videoUrl || BRAND_VIDEO_URL} 
-                    title="Levlox Tech Brand Story" 
-                    frameBorder="0" 
-                    allow="autoplay; encrypted-media; picture-in-picture" 
-                    allowFullScreen
-                ></iframe>
-              )}
+              <video
+                  src={videoUrl}
+                  controls
+                  autoPlay
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', border: 'none' }}
+              />
             </div>
             
             <button 
