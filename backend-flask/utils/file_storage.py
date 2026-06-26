@@ -53,7 +53,28 @@ def get_upload_settings():
         db.upload_settings.insert_one(doc)
         return DEFAULT_SETTINGS
     
-    return settings_doc.get("settings", DEFAULT_SETTINGS)
+    raw_settings = settings_doc.get("settings", DEFAULT_SETTINGS)
+    
+    # Dynamically normalize settings to camelCase to protect frontend and keep logic unified
+    normalized = {}
+    for key, val in raw_settings.items():
+        camel_key = key
+        if key == "hero_video":
+            camel_key = "heroVideo"
+        elif key == "profile_image":
+            camel_key = "profileImage"
+            
+        if isinstance(val, dict):
+            exts = val.get("extensions") or val.get("allowed_extensions") or DEFAULT_SETTINGS.get(camel_key, {}).get("extensions", [])
+            size = val.get("maxSizeMB") or val.get("max_size_mb") or DEFAULT_SETTINGS.get(camel_key, {}).get("maxSizeMB", 1)
+            normalized[camel_key] = {
+                "maxSizeMB": size,
+                "extensions": exts
+            }
+        else:
+            normalized[camel_key] = val
+            
+    return normalized
 
 def update_upload_settings(new_settings):
     """Updates upload limits in DB."""
@@ -119,7 +140,12 @@ def validate_file(file_storage, category):
     # 1. Extension validation
     if ext not in allowed_exts:
         # Standard dynamic error message format
-        allowed_list_str = ", ".join(allowed_exts[:-1]).upper() + f" and {allowed_exts[-1].upper()}" if len(allowed_exts) > 1 else allowed_exts[0].upper()
+        if not allowed_exts:
+            allowed_list_str = "no formats"
+        elif len(allowed_exts) > 1:
+            allowed_list_str = ", ".join(allowed_exts[:-1]).upper() + f" and {allowed_exts[-1].upper()}"
+        else:
+            allowed_list_str = allowed_exts[0].upper()
         return False, f"Only {allowed_list_str} files are allowed.", None, None
         
     # Read file content safely to validate size

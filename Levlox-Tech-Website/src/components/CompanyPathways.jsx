@@ -830,9 +830,9 @@ export default function CompanyPathways({ onDetailActive }) {
                   }} 
                   className="form-input-box" 
                 />
-                {uploadConfig?.resume && (
+                {uploadConfig?.resume?.extensions && (
                   <div style={{ fontSize: '11px', color: '#64748b', marginTop: '-14px', marginBottom: '20px', lineHeight: '1.4' }}>
-                    Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                    Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB || 3} MB
                   </div>
                 )}
                 
@@ -990,9 +990,9 @@ export default function CompanyPathways({ onDetailActive }) {
                     className="f-input"
                     style={{ padding: '10px' }}
                   />
-                  {uploadConfig?.resume && (
+                  {uploadConfig?.resume?.extensions && (
                     <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
-                      Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                      Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB || 3} MB
                     </div>
                   )}
                 </div>

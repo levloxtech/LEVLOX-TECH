@@ -508,9 +508,9 @@ export default function Footer() {
                         required
                         onChange={handleFileChange}
                       />
-                      {uploadConfig?.resume && (
+                      {uploadConfig?.resume?.extensions && (
                         <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px', lineHeight: '1.4' }}>
-                          Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB} MB
+                          Allowed: {uploadConfig.resume.extensions.join(', ').toUpperCase()} | Max Size: {uploadConfig.resume.maxSizeMB || 3} MB
                         </div>
                       )}
                     </div>
