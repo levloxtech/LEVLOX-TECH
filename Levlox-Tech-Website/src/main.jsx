@@ -3,8 +3,38 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
+// Global Error Handler for Production
+const logErrorToBackend = async (errorMsg, stack, url) => {
+  if (import.meta.env.DEV) {
+    console.error("Local Error Caught:", errorMsg, stack);
+    return;
+  }
+  const apiEndpoint = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+  try {
+    await fetch(`${apiEndpoint.endsWith('/api') ? apiEndpoint : apiEndpoint + '/api'}/logs/frontend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: errorMsg, stack: stack, url: url })
+    });
+  } catch (err) {
+    // Avoid infinite logging loops if backend is down
+  }
+};
+
+window.addEventListener('error', (event) => {
+  logErrorToBackend(event.message, event.error?.stack || "", window.location.href);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event.reason;
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  const stack = reason instanceof Error ? reason.stack : "";
+  logErrorToBackend(`Unhandled Rejection: ${msg}`, stack, window.location.href);
+});
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+

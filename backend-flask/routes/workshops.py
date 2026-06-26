@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from utils.db import mongo_db
+from utils.logger import logger
 from datetime import datetime
 
 workshops_bp = Blueprint("workshops", __name__, url_prefix="/api/workshops")
@@ -93,18 +94,15 @@ def register_workshop():
     try:
         res = db.workshop_registrations.insert_one(registration_data)
         registration_id = str(res.inserted_id)
-        import logging
-        logging.getLogger(__name__).info(f"Successfully processed workshop registration with ID: {registration_id}")
+        logger.info(f"Successfully processed workshop registration with ID: {registration_id}")
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Failed to save workshop registration to MongoDB: {e}")
+        logger.error(f"Failed to save workshop registration to MongoDB: {e}")
         return jsonify({"status": "error", "message": f"Database insertion failed: {str(e)}"}), 500
     
     # Auto-create lead
     lead_id = mongo_db.create_lead(name, email, phone, "workshop")
     if not lead_id:
-        import logging
-        logging.getLogger(__name__).warning("Failed to auto-create lead for workshop registration.")
+        logger.warning("Failed to auto-create lead for workshop registration.")
     
     # Auto-email acknowledgment
     mongo_db.log_email(

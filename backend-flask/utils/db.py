@@ -1,11 +1,8 @@
-import os
-import logging
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Setup centralized logger
+from utils.logger import logger
 
 class Database:
     def __init__(self):

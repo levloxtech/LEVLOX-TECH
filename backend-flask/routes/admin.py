@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, send_from_directory
 from utils.db import mongo_db
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 import os
 import werkzeug.utils
 
@@ -78,10 +79,10 @@ def update_admin_profile():
     # Also handle password change if requested
     new_password = data.get("password")
     if new_password:
-        # Update admin user password in users collection
+        # Update admin user password in users collection with hash
         db.users.update_one(
             {"email": current_email},
-            {"$set": {"password": new_password}}
+            {"$set": {"password": generate_password_hash(new_password)}}
         )
         
     update_data["updatedAt"] = datetime.utcnow()

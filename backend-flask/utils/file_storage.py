@@ -7,6 +7,7 @@ import uuid
 from bson.objectid import ObjectId
 from datetime import datetime
 from utils.db import mongo_db
+from utils.logger import logger
 
 DEFAULT_SETTINGS = {
     "resume": {
@@ -122,6 +123,7 @@ def validate_file(file_storage, category):
     Returns (is_valid, error_message, file_content, content_type)
     """
     if not file_storage or file_storage.filename == "":
+        logger.warning(f"File validation failed: No file selected or empty filename for category '{category}'")
         return False, "No file selected or empty file.", None, None
         
     filename = file_storage.filename
@@ -150,6 +152,7 @@ def validate_file(file_storage, category):
             allowed_list_str = ", ".join(allowed_exts[:-1]).upper() + f" and {allowed_exts[-1].upper()}"
         else:
             allowed_list_str = allowed_exts[0].upper()
+        logger.warning(f"File validation failed: Extension '.{ext}' is not allowed for category '{category}'. Allowed: {allowed_exts} (file: '{filename}')")
         return False, f"Only {allowed_list_str} files are allowed.", None, None
         
     # Read file content safely to validate size
@@ -159,11 +162,13 @@ def validate_file(file_storage, category):
     
     # 2. Check for empty files
     if size_bytes == 0:
+        logger.warning(f"File validation failed: File is empty (0 bytes) for category '{category}' (file: '{filename}')")
         return False, "File is empty (0 bytes).", None, None
         
     # 3. Size validation
     max_bytes = max_size_mb * 1024 * 1024
     if size_bytes > max_bytes:
+        logger.warning(f"File validation failed: File size {size_bytes} bytes exceeds maximum limit of {max_size_mb} MB for category '{category}' (file: '{filename}')")
         # Dynamic error message format
         if category == "resume":
             return False, f"Resume must be less than {max_size_mb} MB.", None, None
@@ -183,6 +188,7 @@ def validate_file(file_storage, category):
         # Search by sha256 hash in metadata
         existing = fs.find_one({"metadata.sha256": sha256_hash})
         if existing:
+            logger.warning(f"File validation failed: Duplicate upload detected for category '{category}' (file: '{filename}', hash: {sha256_hash})")
             return False, "Duplicate upload detected. This file has already been uploaded.", None, None
 
     content_type = file_storage.content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
@@ -195,12 +201,15 @@ def save_file_to_gridfs(file_storage, category="general", metadata=None):
     Applies sanitization and validation.
     Returns metadata dict.
     """
+    logger.info(f"File upload attempt starting: category='{category}', filename='{file_storage.filename}'")
     is_valid, err_msg, file_content, content_type = validate_file(file_storage, category)
     if not is_valid:
+        logger.error(f"File upload failed validation: {err_msg} (file: '{file_storage.filename}')")
         raise ValueError(err_msg)
 
     fs = get_gridfs()
     if not fs:
+        logger.error("File upload failed: Database GridFS not initialized")
         raise Exception("Database/GridFS not initialized")
 
     original_filename = file_storage.filename
@@ -219,12 +228,17 @@ def save_file_to_gridfs(file_storage, category="general", metadata=None):
         file_metadata.update(metadata)
 
     # Save to GridFS
-    file_id = fs.put(
-        file_content,
-        filename=sanitized_name,
-        content_type=content_type,
-        metadata=file_metadata
-    )
+    try:
+        file_id = fs.put(
+            file_content,
+            filename=sanitized_name,
+            content_type=content_type,
+            metadata=file_metadata
+        )
+        logger.info(f"File upload succeeded: Saved to GridFS. ID: {file_id}, Name: {sanitized_name}, Category: {category}, Size: {size} bytes")
+    except Exception as e:
+        logger.error(f"File upload failed during GridFS write operation: {str(e)} (file: '{original_filename}')")
+        raise
     
     return {
         "file_id": str(file_id),

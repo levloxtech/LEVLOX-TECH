@@ -173,7 +173,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
 
   const fetchCourses = useCallback(async () => {
     setCoursesLoading(true);
-    console.log('API Call: GET /api/courses');
+    if (import.meta.env.DEV) console.log('API Call: GET /api/courses');
     try {
       const res = await fetch(`${apiUrl}/api/courses`);
       const data = await res.json();
@@ -190,7 +190,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
   const fetchModules = useCallback(async (courseId) => {
     if (!courseId) return;
     setModulesLoading(true);
-    console.log(`API Call: GET /api/courses/${courseId}/modules`);
+    if (import.meta.env.DEV) console.log(`API Call: GET /api/courses/${courseId}/modules`);
     try {
       const res = await fetch(`${apiUrl}/api/courses/${courseId}/modules`);
       const data = await res.json();
@@ -207,7 +207,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
   const fetchLessons = useCallback(async (moduleId) => {
     if (!moduleId) return;
     setLessonsLoading(true);
-    console.log(`API Call: GET /api/modules/${moduleId}/lessons`);
+    if (import.meta.env.DEV) console.log(`API Call: GET /api/modules/${moduleId}/lessons`);
     try {
       const res = await fetch(`${apiUrl}/api/modules/${moduleId}/lessons`);
       const data = await res.json();

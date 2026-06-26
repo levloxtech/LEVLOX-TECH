@@ -5,9 +5,7 @@ from bson import ObjectId
 import os
 import werkzeug.utils
 import time
-import logging
-
-logger = logging.getLogger(__name__)
+from utils.logger import logger
 
 courses_bp = Blueprint("courses", __name__)
 
@@ -45,18 +43,15 @@ def enroll_course():
     try:
         res = db.course_enrollments.insert_one(enrollment_data)
         enrollment_id = str(res.inserted_id)
-        import logging
-        logging.getLogger(__name__).info(f"Successfully processed course enrollment with ID: {enrollment_id}")
+        logger.info(f"Successfully processed course enrollment with ID: {enrollment_id}")
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Failed to save course enrollment to MongoDB: {e}")
+        logger.error(f"Failed to save course enrollment to MongoDB: {e}")
         return jsonify({"status": "error", "message": f"Database insertion failed: {str(e)}"}), 500
             
     # Auto-create lead
     lead_id = mongo_db.create_lead(name, email, phone, "course")
     if not lead_id:
-        import logging
-        logging.getLogger(__name__).warning("Failed to auto-create lead for course enrollment.")
+        logger.warning("Failed to auto-create lead for course enrollment.")
     
     # Auto-email acknowledgment
     mongo_db.log_email(

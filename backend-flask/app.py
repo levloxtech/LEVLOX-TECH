@@ -1,10 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+import atexit
 
-# Import Config and Database manager - refreshed config with CORS wildcard
+# Import Config, Database manager, and centralized logger
 from config import Config
 from utils.db import mongo_db
+from utils.logger import logger
 
 # Import Route Blueprints
 from routes.auth import auth_bp
@@ -27,6 +29,8 @@ def create_app():
     # Load configuration
     app.config.from_object(Config)
     
+    logger.info("Starting Levlox CRM Application factory...")
+    
     CORS(app, resources={
         r"/api/*": {
             "origins": Config.CORS_ORIGINS,
@@ -43,6 +47,23 @@ def create_app():
     
     # Initialize JWT Manager
     jwt = JWTManager(app)
+    
+    # JWT validation custom loggers and responses
+    @jwt.unauthorized_loader
+    def unauthorized_response(callback):
+        logger.warning(f"JWT Verification Failed: Unauthorized request to {request.path}. Detail: {callback}")
+        return jsonify({"status": "error", "message": "Missing Authorization Header"}), 401
+
+    @jwt.invalid_token_loader
+    def invalid_token_response(callback):
+        logger.warning(f"JWT Verification Failed: Invalid token provided to {request.path}. Detail: {callback}")
+        return jsonify({"status": "error", "message": "Signature verification failed"}), 401
+
+    @jwt.expired_token_loader
+    def expired_token_response(jwt_header, jwt_payload):
+        user_identity = jwt_payload.get("sub", "unknown")
+        logger.warning(f"JWT Verification Failed: Expired token for user '{user_identity}' to {request.path}")
+        return jsonify({"status": "error", "message": "The token has expired"}), 401
     
     # Initialize MongoDB Connection
     mongo_db.init_app(app)
@@ -61,6 +82,30 @@ def create_app():
     app.register_blueprint(results_bp)
     app.register_blueprint(upload_settings_bp)
     
+    # Request & Response Logging Middleware
+    @app.before_request
+    def log_request_info():
+        origin = request.headers.get('Origin')
+        # Log CORS warnings
+        if origin and origin not in Config.CORS_ORIGINS and not request.path.startswith('/api/certificates/verify/'):
+            logger.warning(f"CORS Error: Origin '{origin}' is not in ALLOWED_ORIGINS config list for path {request.path}")
+        logger.info(f"API Request: {request.method} {request.path} - Remote Addr: {request.remote_addr} - Origin: {origin}")
+        
+    @app.after_request
+    def log_response_info(response):
+        logger.info(f"API Response: {request.method} {request.path} status={response.status_code}")
+        return response
+
+    # Frontend Log Ingestion Route
+    @app.route("/api/logs/frontend", methods=["POST"])
+    def log_frontend_error():
+        data = request.get_json() or {}
+        error_msg = data.get("message", "Unknown frontend error")
+        stack = data.get("stack", "")
+        url = data.get("url", "")
+        logger.error(f"Frontend Error Ingested: '{error_msg}' at URL: {url}\nStack Trace:\n{stack}")
+        return jsonify({"status": "success", "message": "Log received"}), 200
+
     # Test route: GET /
     @app.route("/", methods=["GET"])
     def home():
@@ -72,15 +117,17 @@ def create_app():
     # General Error Handlers
     @app.errorhandler(404)
     def not_found(error):
+        logger.warning(f"Resource not found: {request.method} {request.path}")
         return jsonify({
             "status": "error",
             "message": "Resource not found"
         }), 404
 
-    @app.errorhandler(500)
-    def internal_error(error):
+    @app.errorhandler(Exception)
+    def handle_unexpected_exception(error):
         import traceback
-        traceback.print_exc()
+        stack = traceback.format_exc()
+        logger.critical(f"Unexpected Exception occurred: {str(error)}\n{stack}")
         return jsonify({
             "status": "error",
             "message": "Internal server error"
@@ -90,5 +137,10 @@ def create_app():
 
 app = create_app()
 
+@atexit.register
+def shutdown():
+    logger.info("Levlox CRM Application is shutting down...")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=Config.PORT, debug=Config.DEBUG)
+

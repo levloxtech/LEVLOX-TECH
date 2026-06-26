@@ -104,13 +104,13 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        console.log("Fetching career pathways from API...");
+        if (import.meta.env.DEV) console.log("Fetching career pathways from API...");
         const res = await api.get('/career-pathways');
-        console.log("API response data:", res.data);
+        if (import.meta.env.DEV) console.log("API response data:", res.data);
         if (res.data && res.data.status === 'success') {
           // Safety filter: ensure we only get active career pathways
           const filtered = res.data.courses.filter(c => c.is_career_pathway === true || c.pathwayType === 'career');
-          console.log("Filtered courses:", filtered);
+          if (import.meta.env.DEV) console.log("Filtered courses:", filtered);
           const normalized = filtered.map((c, idx) => {
             return {
               id: c._id,
@@ -266,9 +266,11 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
     const videoUrl = activeLesson ? (activeLesson.videoUrl || activeLesson.video_url) : "";
     const isVideoLocked = activeLesson ? false : true;
 
-    console.log("DEBUG: selectedDetailCourse =", selectedDetailCourse);
-    console.log("DEBUG: detailCourseData =", detailCourseData);
-    console.log("DEBUG: courseStatus being passed =", selectedDetailCourse?.status || detailCourseData?.course?.status);
+    if (import.meta.env.DEV) {
+      console.log("DEBUG: selectedDetailCourse =", selectedDetailCourse);
+      console.log("DEBUG: detailCourseData =", detailCourseData);
+      console.log("DEBUG: courseStatus being passed =", selectedDetailCourse?.status || detailCourseData?.course?.status);
+    }
 
     return (
       <div className="career-detail-container">

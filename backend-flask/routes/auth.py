@@ -1,12 +1,14 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
 from utils.db import mongo_db
+from utils.logger import logger
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    """Authenticates the administrator using database validation."""
+    """Authenticates the administrator using database validation and hashes plain text passwords on the fly."""
     data = request.get_json() or {}
     email = data.get("email")
     password = data.get("password")
@@ -17,30 +19,53 @@ def login():
     db = mongo_db.get_db()
     if db is not None:
         user = db.users.find_one({"email": email})
-        if user and user.get("password") == password:
-            access_token = create_access_token(identity=email)
-            return jsonify({
-                "status": "success",
-                "message": "Login successful",
-                "token": access_token,
-                "user": {
-                    "email": email,
-                    "role": user.get("role", "admin")
-                }
-            }), 200
+        if user:
+            stored_pwd = user.get("password", "")
+            is_match = False
+            # Check if it looks like a hash
+            if stored_pwd.startswith(("pbkdf2:sha256:", "scrypt:", "sha256:", "bcrypt:")) or (":" in stored_pwd and "$" in stored_pwd):
+                try:
+                    is_match = check_password_hash(stored_pwd, password)
+                except Exception as e:
+                    logger.error(f"Error checking password hash for '{email}': {e}")
+                    is_match = False
+            else:
+                # Legacy plain text comparison
+                is_match = (stored_pwd == password)
+                if is_match:
+                    # Auto-migrate legacy user to hashed password
+                    try:
+                        hashed = generate_password_hash(password)
+                        db.users.update_one({"_id": user["_id"]}, {"$set": {"password": hashed}})
+                        logger.info(f"Auto-migrated legacy plain-text password to hash for user '{email}'")
+                    except Exception as e:
+                        logger.error(f"Failed to auto-migrate legacy password for user '{email}': {e}")
+
+            if is_match:
+                access_token = create_access_token(identity=email)
+                return jsonify({
+                    "status": "success",
+                    "message": "Login successful",
+                    "token": access_token,
+                    "user": {
+                        "email": email,
+                        "role": user.get("role", "admin")
+                    }
+                }), 200
             
     # Fallback to default credentials and seed them in the DB if the admin user is not yet created
     if email == "admin@levlox.com" and password == "admin123":
         if db is not None:
             existing_user = db.users.find_one({"email": "admin@levlox.com"})
             if not existing_user:
+                hashed_fallback = generate_password_hash("admin123")
                 db.users.update_one(
                     {"email": "admin@levlox.com"},
                     {"$set": {
                         "email": "admin@levlox.com",
                         "name": "Sri Aakash",
                         "role": "Super Admin",
-                        "password": "admin123"
+                        "password": hashed_fallback
                     }},
                     upsert=True
                 )
@@ -131,7 +156,7 @@ def create_user():
             "email": email,
             "name": name,
             "role": role,
-            "password": password # In real crm, should be hashed, for Phase 1/2 stubs simple plain text works
+            "password": generate_password_hash(password)
         }
         res = db.users.insert_one(user_doc)
         user_doc["_id"] = str(res.inserted_id)
@@ -164,7 +189,7 @@ def update_user(user_id):
         if "role" in data:
             update_fields["role"] = data["role"].strip()
         if "password" in data and data["password"].strip():
-            update_fields["password"] = data["password"].strip()
+            update_fields["password"] = generate_password_hash(data["password"].strip())
 
         res = db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
         if res.matched_count == 0:

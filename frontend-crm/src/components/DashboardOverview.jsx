@@ -115,8 +115,10 @@ const DashboardOverview = ({ data: externalData = {}, onRefresh, setActiveView, 
     if (!token) return;
     try {
       const { fromUTC, toUTC } = toUTCRange(range.from, range.to);
-      console.log('[Dashboard] Fetching stats | Local range:', range.from, '→', range.to);
-      console.log('[Dashboard] UTC range sent to backend:', fromUTC, '→', toUTC);
+      if (import.meta.env.DEV) {
+        console.log('[Dashboard] Fetching stats | Local range:', range.from, '→', range.to);
+        console.log('[Dashboard] UTC range sent to backend:', fromUTC, '→', toUTC);
+      }
       const res = await fetch(
         `${apiUrl}/api/dashboard/stats?from_date=${encodeURIComponent(fromUTC)}&to_date=${encodeURIComponent(toUTC)}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
@@ -137,12 +139,12 @@ const DashboardOverview = ({ data: externalData = {}, onRefresh, setActiveView, 
     const to   = parseLocalDate(range.to,   true);   // local 23:59:59 end
 
     const today = new Date();
-    console.log('[Dashboard] Client filter | Today (local):', fmtLocal(today), '| Range:', fmtLocal(from), '→', fmtLocal(to));
+    if (import.meta.env.DEV) console.log('[Dashboard] Client filter | Today (local):', fmtLocal(today), '| Range:', fmtLocal(from), '→', fmtLocal(to));
 
     const inRange = (item) => {
       if (!item.createdAt) return false;
       const created = new Date(item.createdAt);
-      console.log('[Dashboard] Record createdAt:', item.createdAt, '| Local date:', fmtLocal(created), '| In range:', created >= from && created <= to);
+      if (import.meta.env.DEV) console.log('[Dashboard] Record createdAt:', item.createdAt, '| Local date:', fmtLocal(created), '| In range:', created >= from && created <= to);
       return created >= from && created <= to;
     };
 

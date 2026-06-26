@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from utils.db import mongo_db
+from utils.logger import logger
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 
@@ -47,7 +48,7 @@ def _parse_date_range():
 
             return from_dt, to_dt
         except (ValueError, AttributeError) as e:
-            print(f"[dashboard] Date parse error: {e} | from={raw_from} to={raw_to}")
+            logger.warning(f"[dashboard] Date parse error: {e} | from={raw_from} to={raw_to}")
 
     # Default: today UTC (midnight to midnight)
     today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)

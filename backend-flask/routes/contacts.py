@@ -6,6 +6,8 @@ from utils.db import mongo_db
 from datetime import datetime
 from utils.date_helpers import parse_date_range_query
 
+from utils.logger import logger
+
 contacts_bp = Blueprint("contacts", __name__)
 
 
@@ -88,19 +90,16 @@ def submit_contact():
     try:
         res = db.contacts.insert_one(contact_data)
         contact_id = str(res.inserted_id)
-        import logging
-        logging.getLogger(__name__).info(f"Successfully saved contact inquiry with ID: {contact_id}")
+        logger.info(f"Successfully saved contact inquiry with ID: {contact_id}")
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Failed to insert contact inquiry into MongoDB: {e}")
+        logger.error(f"Failed to insert contact inquiry into MongoDB: {e}")
         return jsonify({"status": "error", "message": f"Database insertion failed: {str(e)}"}), 500
 
     # Auto-create lead
     lead_source = "contact_with_resume" if resume_file else "contact_form"
     lead_id = mongo_db.create_lead(name, email, phone, lead_source, company=company, resume=resume_info)
     if not lead_id:
-        import logging
-        logging.getLogger(__name__).warning("Failed to auto-create lead for contact form submission.")
+        logger.warning("Failed to auto-create lead for contact form submission.")
 
     if resume_file:
         # Save resume to general 'resumes' collection too (CRM tracker)
