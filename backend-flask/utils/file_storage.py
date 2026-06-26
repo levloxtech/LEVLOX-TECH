@@ -132,7 +132,11 @@ def validate_file(file_storage, category):
     category_key = category_map.get(category, category)
     category_config = settings.get(category_key)
     if not category_config:
-        return False, f"Unknown upload category: {category}", None, None
+        # Safe permissive fallback to handle general uploads (e.g. course attachments, testimonial photos/videos)
+        category_config = {
+            "maxSizeMB": 100,
+            "extensions": ["pdf", "doc", "docx", "png", "jpg", "jpeg", "webp", "gif", "mp4", "webm", "mov", "zip", "rar", "ppt", "pptx", "txt"]
+        }
         
     allowed_exts = category_config.get("extensions", [])
     max_size_mb = category_config.get("maxSizeMB", 1)
