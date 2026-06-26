@@ -1222,12 +1222,21 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
               </div>
 
               {/* Uploads Section */}
-              <div className="border-t border-gray-100 pt-4 space-y-3">
-                <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Syllabus Media Assets</h5>
+              <div className="border-t border-gray-100 pt-4 space-y-4">
+                <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Syllabus Media Assets & URLs</h5>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (.mp4)</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Video */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (YouTube or URL Link)</label>
+                    <input
+                      type="text"
+                      value={lessonForm.video_url}
+                      onChange={(e) => setLessonForm({...lessonForm, video_url: e.target.value})}
+                      placeholder="Paste YouTube / video URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload Video File</span>
                     <input
                       type="file"
                       accept="video/*"
@@ -1236,8 +1245,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
                   
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes (.pdf)</label>
+                  {/* Notes / PDF */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes PDF / URL Link</label>
+                    <input
+                      type="text"
+                      value={lessonForm.pdf_url}
+                      onChange={(e) => setLessonForm({...lessonForm, pdf_url: e.target.value})}
+                      placeholder="Paste PDF / Notes URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload PDF File</span>
                     <input
                       type="file"
                       accept=".pdf"
@@ -1246,8 +1264,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code (.zip)</label>
+                  {/* Code */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code Repository / URL Link</label>
+                    <input
+                      type="text"
+                      value={lessonForm.code_url}
+                      onChange={(e) => setLessonForm({...lessonForm, code_url: e.target.value})}
+                      placeholder="Paste GitHub / repository URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload ZIP File</span>
                     <input
                       type="file"
                       accept=".zip"
@@ -1256,8 +1283,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files (.zip)</label>
+                  {/* Files */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files / Resources URL Link</label>
+                    <input
+                      type="text"
+                      value={lessonForm.files_url}
+                      onChange={(e) => setLessonForm({...lessonForm, files_url: e.target.value})}
+                      placeholder="Paste resources URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload ZIP File</span>
                     <input
                       type="file"
                       accept=".zip"
@@ -1360,23 +1396,22 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Video Type / URL Option</label>
-                <input
-                  type="text"
-                  value={editLessonForm.video_url}
-                  onChange={(e) => setEditLessonForm({...editLessonForm, video_url: e.target.value})}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs outline-none"
-                  placeholder="URL link (e.g. YouTube or HTML5 Video URL)"
-                />
-              </div>
-
-              <div className="border-t border-gray-100 pt-4 space-y-3">
-                <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Or Upload New Media Files (Leaves existing if empty)</h5>
+              {/* Uploads Section */}
+              <div className="border-t border-gray-100 pt-4 space-y-4">
+                <h5 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Syllabus Media Assets & URLs</h5>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (.mp4)</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Video */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Lesson Video (YouTube or URL Link)</label>
+                    <input
+                      type="text"
+                      value={editLessonForm.video_url}
+                      onChange={(e) => setEditLessonForm({...editLessonForm, video_url: e.target.value})}
+                      placeholder="Paste YouTube / video URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New Video File</span>
                     <input
                       type="file"
                       accept="video/*"
@@ -1385,8 +1420,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
                   
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes (.pdf)</label>
+                  {/* Notes / PDF */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Lecture Notes PDF / URL Link</label>
+                    <input
+                      type="text"
+                      value={editLessonForm.pdf_url}
+                      onChange={(e) => setEditLessonForm({...editLessonForm, pdf_url: e.target.value})}
+                      placeholder="Paste PDF / Notes URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New PDF File</span>
                     <input
                       type="file"
                       accept=".pdf"
@@ -1395,8 +1439,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code (.zip)</label>
+                  {/* Code */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Source Code Repository / URL Link</label>
+                    <input
+                      type="text"
+                      value={editLessonForm.code_url}
+                      onChange={(e) => setEditLessonForm({...editLessonForm, code_url: e.target.value})}
+                      placeholder="Paste GitHub / repository URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New ZIP File</span>
                     <input
                       type="file"
                       accept=".zip"
@@ -1405,8 +1458,17 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files (.zip)</label>
+                  {/* Files */}
+                  <div className="space-y-1.5 bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Project Files / Resources URL Link</label>
+                    <input
+                      type="text"
+                      value={editLessonForm.files_url}
+                      onChange={(e) => setEditLessonForm({...editLessonForm, files_url: e.target.value})}
+                      placeholder="Paste resources URL..."
+                      className="w-full bg-white border border-gray-150 rounded-xl px-3 py-1.5 text-[11px] outline-none mb-2"
+                    />
+                    <span className="text-[8px] font-bold text-gray-400 uppercase block mb-1">Or Upload New ZIP File</span>
                     <input
                       type="file"
                       accept=".zip"
