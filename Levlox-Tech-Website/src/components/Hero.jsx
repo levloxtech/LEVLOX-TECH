@@ -1,9 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../api/axios';
 
 const BRAND_VIDEO_URL = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'; // Replace with actual video
 
 export default function Hero() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
+
+  useEffect(() => {
+    const fetchHeroVideo = async () => {
+      try {
+        const res = await api.get('/hero-video/active/metadata');
+        if (res.data && res.data.status === 'success' && res.data.video) {
+          const fetchedUrl = res.data.video.url;
+          if (fetchedUrl) {
+            if (fetchedUrl.startsWith('http')) {
+              setVideoUrl(fetchedUrl);
+            } else {
+              const baseURL = api.defaults.baseURL || 'http://127.0.0.1:5000/api';
+              const cleanBase = baseURL.endsWith('/api') ? baseURL.substring(0, baseURL.length - 4) : baseURL;
+              setVideoUrl(`${cleanBase}${fetchedUrl}`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load active hero video:", err);
+      }
+    };
+    fetchHeroVideo();
+  }, []);
 
   const scrollToPathways = () => {
     const element = document.getElementById('pathways');
@@ -185,15 +210,24 @@ export default function Hero() {
             style={{ position: 'relative', width: '100%', maxWidth: '1000px', background: '#000', borderRadius: '20px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
           >
             <div style={{ position: 'relative', aspectRatio: '16/9' }}>
-              <iframe 
-                  width="100%" 
-                  height="100%" 
-                  src={BRAND_VIDEO_URL} 
-                  title="Levlox Tech Brand Story" 
-                  frameBorder="0" 
-                  allow="autoplay; encrypted-media; picture-in-picture" 
-                  allowFullScreen
-              ></iframe>
+              {videoUrl && !videoUrl.includes('youtube.com') && !videoUrl.includes('embed') ? (
+                <video
+                    src={videoUrl}
+                    controls
+                    autoPlay
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', border: 'none' }}
+                />
+              ) : (
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={videoUrl || BRAND_VIDEO_URL} 
+                    title="Levlox Tech Brand Story" 
+                    frameBorder="0" 
+                    allow="autoplay; encrypted-media; picture-in-picture" 
+                    allowFullScreen
+                ></iframe>
+              )}
             </div>
             
             <button 

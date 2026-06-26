@@ -270,6 +270,33 @@ def upload_hero_video():
         "video": video_doc
     }), 200
 
+@admin_bp.route("/api/hero-video/active/metadata", methods=["GET"])
+def get_public_active_video_metadata():
+    """Retrieve metadata of the currently active hero video for the public website."""
+    db = mongo_db.get_db()
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not initialized"}), 500
+        
+    video = db.hero_videos.find_one({"status": "active"})
+    if not video:
+        return jsonify({
+            "status": "success",
+            "video": {
+                "url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1",
+                "filename": "Fallback YouTube Video",
+                "uploadDate": None
+            }
+        }), 200
+        
+    return jsonify({
+        "status": "success",
+        "video": {
+            "url": "/api/hero-video/active",
+            "filename": video.get("original_filename") or video.get("filename"),
+            "uploadDate": video.get("uploaded_at")
+        }
+    }), 200
+
 @admin_bp.route("/api/admin/hero-video/active/metadata", methods=["GET"])
 @jwt_required()
 def get_active_video_metadata():
