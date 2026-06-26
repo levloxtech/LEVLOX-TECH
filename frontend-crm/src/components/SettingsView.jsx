@@ -3,7 +3,7 @@ import {
   User, Mail, Phone, 
   Briefcase, Building, MapPin, AlignLeft, 
   Upload, Trash2, Key, Info, CheckCircle,
-  Film, FileText, Image, Award
+  Film, FileText, Image, Award, Shield
 } from 'lucide-react';
 
 const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) => {
