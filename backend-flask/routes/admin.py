@@ -277,9 +277,9 @@ def upload_hero_video():
         "video": video_doc
     }), 200
 
-@admin_bp.route("/api/admin/hero-video/youtube", methods=["POST"])
+@admin_bp.route("/api/admin/hero-video/configure", methods=["POST"])
 @jwt_required()
-def set_youtube_hero_video():
+def configure_hero_video_url():
     db = mongo_db.get_db()
     if db is None:
         return jsonify({"status": "error", "message": "Database not initialized"}), 500
@@ -291,17 +291,24 @@ def set_youtube_hero_video():
         return jsonify({"status": "error", "message": "Unauthorized. Admin access required."}), 403
 
     data = request.get_json() or {}
-    youtube_url = data.get("youtube_url")
-    title = data.get("title", "YouTube Video")
+    source_type = data.get("source_type", "youtube") # "youtube" or "vimeo"
+    url = data.get("url")
+    title = data.get("title", "Hero Video")
     
-    if not youtube_url:
-        return jsonify({"status": "error", "message": "YouTube URL is required"}), 400
+    if not url:
+        return jsonify({"status": "error", "message": "Video URL is required"}), 400
 
-    # Basic YouTube URL validation
     import re
-    youtube_regex = r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$"
-    if not re.match(youtube_regex, youtube_url):
-        return jsonify({"status": "error", "message": "Invalid YouTube URL format"}), 400
+    if source_type == "youtube":
+        youtube_regex = r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$"
+        if not re.match(youtube_regex, url):
+            return jsonify({"status": "error", "message": "Invalid YouTube URL format"}), 400
+    elif source_type == "vimeo":
+        vimeo_regex = r"^(https?://)?(www\.)?(vimeo\.com|player\.vimeo\.com)/.+$"
+        if not re.match(vimeo_regex, url):
+            return jsonify({"status": "error", "message": "Invalid Vimeo URL format"}), 400
+    else:
+        return jsonify({"status": "error", "message": "Invalid source type selected"}), 400
 
     from utils.file_storage import delete_file_from_gridfs
     # Clean up previous active hero video
@@ -326,8 +333,8 @@ def set_youtube_hero_video():
 
     now = datetime.utcnow()
     video_doc = {
-        "source_type": "youtube",
-        "url": youtube_url,
+        "source_type": source_type,
+        "url": url,
         "title": title,
         "uploaded_at": now.isoformat(),
         "status": "active"
@@ -336,12 +343,75 @@ def set_youtube_hero_video():
     db.hero_videos.insert_one(video_doc)
     video_doc["_id"] = str(video_doc["_id"])
     
-    mongo_db.log_activity(f"Set YouTube URL as active Hero Video: {youtube_url}")
-    mongo_db.create_notification("Hero Video Update", f"YouTube Hero Video active: {title}")
+    mongo_db.log_activity(f"Set {source_type.upper()} URL as active Hero Video: {url}")
+    mongo_db.create_notification("Hero Video Update", f"{source_type.upper()} Hero Video active: {title}")
     
     return jsonify({
         "status": "success",
-        "message": "YouTube Hero Video configured successfully",
+        "message": f"{source_type.upper()} Hero Video configured successfully",
+        "video": video_doc
+    }), 200
+
+@admin_bp.route("/api/admin/hero-video/youtube", methods=["POST"])
+@jwt_required()
+def set_youtube_hero_video():
+    # Legacy wrapper
+    db = mongo_db.get_db()
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not initialized"}), 500
+    data = request.get_json() or {}
+    data["source_type"] = "youtube"
+    data["url"] = data.get("youtube_url")
+    
+    # Delegate to the configured handler
+    # Since we need headers and everything, let's just construct a mock request / call directly:
+    # Or just run it inline for simplicity:
+    return configure_hero_video_url_inline(data)
+
+def configure_hero_video_url_inline(data):
+    db = mongo_db.get_db()
+    source_type = data.get("source_type", "youtube")
+    url = data.get("url")
+    title = data.get("title", "Hero Video")
+    
+    if not url:
+        return jsonify({"status": "error", "message": "Video URL is required"}), 400
+
+    import re
+    if source_type == "youtube":
+        youtube_regex = r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$"
+        if not re.match(youtube_regex, url):
+            return jsonify({"status": "error", "message": "Invalid YouTube URL format"}), 400
+
+    from utils.file_storage import delete_file_from_gridfs
+    try:
+        previous_active = db.hero_videos.find_one({"status": "active"})
+        if previous_active:
+            prev_file_id = previous_active.get("file_id")
+            if prev_file_id:
+                try: delete_file_from_gridfs(prev_file_id)
+                except: pass
+            prev_thumb_id = previous_active.get("thumbnail_file_id")
+            if prev_thumb_id:
+                try: delete_file_from_gridfs(prev_thumb_id)
+                except: pass
+            db.hero_videos.delete_one({"_id": previous_active["_id"]})
+    except:
+        pass
+
+    now = datetime.utcnow()
+    video_doc = {
+        "source_type": source_type,
+        "url": url,
+        "title": title,
+        "uploaded_at": now.isoformat(),
+        "status": "active"
+    }
+    db.hero_videos.insert_one(video_doc)
+    video_doc["_id"] = str(video_doc["_id"])
+    return jsonify({
+        "status": "success",
+        "message": "Hero Video configured successfully",
         "video": video_doc
     }), 200
 
@@ -366,7 +436,7 @@ def get_public_active_video_metadata():
         }), 200
         
     source_type = video.get("source_type", "upload")
-    if source_type == "youtube":
+    if source_type in ["youtube", "vimeo"]:
         url = video.get("url")
     else:
         url = "/api/hero-video/active"

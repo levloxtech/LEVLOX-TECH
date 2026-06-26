@@ -221,24 +221,34 @@ export default function Hero() {
             style={{ position: 'relative', width: '100%', maxWidth: '1000px', background: '#000', borderRadius: '20px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
           >
             <div style={{ position: 'relative', aspectRatio: '16/9' }}>
-              {sourceType === 'youtube' ? (
+              {sourceType === 'youtube' || sourceType === 'vimeo' ? (
                 <iframe
                     width="100%"
                     height="100%"
-                    src={(videoUrl.includes('youtube.com/embed') || videoUrl.includes('youtube-nocookie.com/embed')) ? `${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1` : (
-                      (() => {
+                    src={(() => {
+                      let embedUrl = videoUrl;
+                      if (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be')) {
                         let videoId = '';
-                        if (videoUrl.includes('youtube.com/watch')) {
-                          const urlParams = new URLSearchParams(new URL(videoUrl).search);
+                        if (embedUrl.includes('youtube.com/watch')) {
+                          const urlParams = new URLSearchParams(new URL(embedUrl).search);
                           videoId = urlParams.get('v');
-                        } else if (videoUrl.includes('youtu.be/')) {
-                          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
-                        } else if (videoUrl.includes('youtube.com/embed/')) {
-                          videoId = videoUrl.split('youtube.com/embed/')[1]?.split('?')[0];
+                        } else if (embedUrl.includes('youtu.be/')) {
+                          videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+                        } else if (embedUrl.includes('youtube.com/embed/')) {
+                          videoId = embedUrl.split('youtube.com/embed/')[1]?.split('?')[0];
                         }
-                        return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : videoUrl;
-                      })()
-                    )}
+                        embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : embedUrl;
+                      } else if (embedUrl.includes('vimeo.com')) {
+                        if (!embedUrl.includes('player.vimeo.com/video/')) {
+                          const matches = embedUrl.match(/vimeo\.com\/(\d+)/);
+                          if (matches && matches[1]) {
+                            embedUrl = `https://player.vimeo.com/video/${matches[1]}`;
+                          }
+                        }
+                      }
+                      const sep = embedUrl.includes('?') ? '&' : '?';
+                      return `${embedUrl}${sep}autoplay=1`;
+                    })()}
                     title="Levlox Tech Brand Story"
                     frameBorder="0"
                     allow="autoplay; encrypted-media; picture-in-picture; clipboard-write; encrypted-media; gyroscope"

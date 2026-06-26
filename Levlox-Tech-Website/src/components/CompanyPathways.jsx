@@ -263,7 +263,7 @@ export default function CompanyPathways({ onDetailActive }) {
     : syllabus.flatMap(m => m.lessons);
 
   const activeLesson = hasDynamicLessons ? lessons[expandedModule] : null;
-  const videoUrl = activeLesson ? activeLesson.video_url : "";
+  const videoUrl = activeLesson ? (activeLesson.videoUrl || activeLesson.video_url) : "";
   const title = detailCourseData?.course?.title || `${targetCompany} PLAYBOOK`;
   const subtitle = detailCourseData?.course?.subtitle || detailCourseData?.course?.desc || `Learn How To Get Into ${targetCompany}`;
 

@@ -44,9 +44,11 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
   const [heroVideoProgress, setHeroVideoProgress] = useState(null);
   const [heroVideoError, setHeroVideoError] = useState('');
   const [heroVideoSuccess, setHeroVideoSuccess] = useState('');
-  const [videoSourceTab, setVideoSourceTab] = useState('upload'); // 'upload' | 'youtube'
+  const [videoSourceTab, setVideoSourceTab] = useState('upload'); // 'upload' | 'youtube' | 'vimeo'
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [youtubeTitle, setYoutubeTitle] = useState('Levlox Tech Brand Story');
+  const [vimeoUrl, setVimeoUrl] = useState('');
+  const [vimeoTitle, setVimeoTitle] = useState('Levlox Tech Brand Story');
 
   // Hero Video Thumbnail upload state
   const [selectedThumbnailFile, setSelectedThumbnailFile] = useState(null);
@@ -452,22 +454,33 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
   const getEmbedUrl = (url) => {
     if (!url) return '';
-    let videoId = '';
-    if (url.includes('youtube.com/watch')) {
-      const urlParams = new URLSearchParams(new URL(url).search);
-      videoId = urlParams.get('v');
-    } else if (url.includes('youtu.be/')) {
-      videoId = url.split('youtu.be/')[1]?.split('?')[0];
-    } else if (url.includes('youtube.com/embed/')) {
-      videoId = url.split('youtube.com/embed/')[1]?.split('?')[0];
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let videoId = '';
+      if (url.includes('youtube.com/watch')) {
+        const urlParams = new URLSearchParams(new URL(url).search);
+        videoId = urlParams.get('v');
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      } else if (url.includes('youtube.com/embed/')) {
+        videoId = url.split('youtube.com/embed/')[1]?.split('?')[0];
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
     }
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    if (url.includes('vimeo.com')) {
+      if (!url.includes('player.vimeo.com/video/')) {
+        const matches = url.match(/vimeo\.com\/(\d+)/);
+        if (matches && matches[1]) {
+          return `https://player.vimeo.com/video/${matches[1]}`;
+        }
+      }
+    }
+    return url;
   };
 
-  const handleYoutubeSave = async (e) => {
-    e.preventDefault();
-    if (!youtubeUrl.trim()) {
-      setHeroVideoError('YouTube URL is required.');
+  const handleHeroVideoConfigure = async (e, sourceType, url, title) => {
+    if (e) e.preventDefault();
+    if (!url.trim()) {
+      setHeroVideoError(`${sourceType.toUpperCase()} URL is required.`);
       return;
     }
     
@@ -476,23 +489,25 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     setSubmitting(true);
     
     try {
-      const res = await fetch(`${apiUrl}/api/admin/hero-video/youtube`, {
+      const res = await fetch(`${apiUrl}/api/admin/hero-video/configure`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          youtube_url: youtubeUrl,
-          title: youtubeTitle
+          source_type: sourceType,
+          url: url,
+          title: title
         })
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
-        setHeroVideoSuccess('YouTube Hero Video saved and activated successfully!');
+        setHeroVideoSuccess(`${sourceType.toUpperCase()} Hero Video saved and activated successfully!`);
         setActiveHeroVideo(data.video);
-        setYoutubeUrl('');
-        showToast('YouTube Video updated!');
+        if (sourceType === 'youtube') setYoutubeUrl('');
+        else if (sourceType === 'vimeo') setVimeoUrl('');
+        showToast('Hero Video updated!');
       } else {
         setHeroVideoError(data.message || 'Configuration failed');
       }
@@ -1177,10 +1192,10 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 {activeHeroVideo ? (
                   <div className="space-y-3">
                     <div className="rounded-2xl overflow-hidden border border-gray-150 bg-black aspect-video shadow-md relative">
-                      {activeHeroVideo.source_type === 'youtube' ? (
+                      {activeHeroVideo.source_type === 'youtube' || activeHeroVideo.source_type === 'vimeo' ? (
                         <iframe
                           src={getEmbedUrl(activeHeroVideo.url)}
-                          title="Active Hero Video (YouTube)"
+                          title="Active Hero Video"
                           className="w-full h-full"
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1204,11 +1219,11 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                         <span className="text-gray-500 font-medium">Source Type:</span>
                         <span className="font-bold text-[#6b21e8] capitalize">{activeHeroVideo.source_type || 'upload'}</span>
                       </div>
-                      {activeHeroVideo.source_type === 'youtube' ? (
+                      {activeHeroVideo.source_type === 'youtube' || activeHeroVideo.source_type === 'vimeo' ? (
                         <>
                           <div className="flex justify-between">
                             <span className="text-gray-500 font-medium">Video Title:</span>
-                            <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.title || 'YouTube Video'}</span>
+                            <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.title || 'Video URL'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500 font-medium">URL:</span>
@@ -1273,6 +1288,15 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     >
                       YouTube URL
                     </button>
+                    <button 
+                      type="button"
+                      onClick={() => { setVideoSourceTab('vimeo'); setHeroVideoError(''); setHeroVideoSuccess(''); }}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                        videoSourceTab === 'vimeo' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
+                      }`}
+                    >
+                      Vimeo URL
+                    </button>
                   </div>
                 </div>
                 
@@ -1335,7 +1359,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                       </button>
                     </div>
                   </div>
-                ) : (
+                ) : videoSourceTab === 'youtube' ? (
                   <div className="space-y-4">
                     <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-4">
                       <div className="space-y-1.5">
@@ -1362,11 +1386,45 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     </div>
 
                     <button 
-                      onClick={handleYoutubeSave}
+                      onClick={(e) => handleHeroVideoConfigure(e, 'youtube', youtubeUrl, youtubeTitle)}
                       disabled={submitting}
                       className="w-full bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
                     >
                       Save YouTube URL & Set Active
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Vimeo URL</label>
+                        <input 
+                          type="url"
+                          value={vimeoUrl}
+                          onChange={(e) => setVimeoUrl(e.target.value)}
+                          placeholder="e.g. https://vimeo.com/123456789"
+                          className="w-full bg-white border border-gray-150 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-zinc-300 font-medium"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Video Title</label>
+                        <input 
+                          type="text"
+                          value={vimeoTitle}
+                          onChange={(e) => setVimeoTitle(e.target.value)}
+                          placeholder="e.g. Levlox Tech Brand Story"
+                          className="w-full bg-white border border-gray-150 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-zinc-300 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={(e) => handleHeroVideoConfigure(e, 'vimeo', vimeoUrl, vimeoTitle)}
+                      disabled={submitting}
+                      className="w-full bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Save Vimeo URL & Set Active
                     </button>
                   </div>
                 )}

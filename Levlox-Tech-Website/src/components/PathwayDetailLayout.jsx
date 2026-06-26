@@ -38,28 +38,99 @@ export default function PathwayDetailLayout({
     }
   }, []);
 
-  const renderMaterialButton = (label, fileUrl) => {
-    let href = fileUrl || '#';
-    const isAvailable = !!fileUrl;
-    
-    if (isAvailable && fileUrl.startsWith('/api')) {
-      href = `http://127.0.0.1:5000${fileUrl}`;
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let videoId = '';
+      if (url.includes('youtube.com/watch')) {
+        const urlParams = new URLSearchParams(new URL(url).search);
+        videoId = urlParams.get('v');
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      } else if (url.includes('youtube.com/embed/')) {
+        videoId = url.split('youtube.com/embed/')[1]?.split('?')[0];
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
     }
+    if (url.includes('vimeo.com')) {
+      if (!url.includes('player.vimeo.com/video/')) {
+        const matches = url.match(/vimeo\.com\/(\d+)/);
+        if (matches && matches[1]) {
+          return `https://player.vimeo.com/video/${matches[1]}`;
+        }
+      }
+    }
+    return url;
+  };
 
+  const getMaterialInfo = (type, url, source) => {
+    if (!url) return { label: `No ${type}`, icon: '❌', href: '#', isAvailable: false };
+    
+    let href = url;
+    if (url.startsWith('/api')) {
+      href = `http://127.0.0.1:5000${url}`;
+    }
+    
+    const src = (source || '').toLowerCase();
+    
+    if (type === 'PDF') {
+      const isOpen = src === 'external' || url.toLowerCase().endsWith('.pdf') || url.includes('.pdf');
+      return {
+        label: isOpen ? "Open PDF" : "Download PDF",
+        icon: "📄",
+        href,
+        isAvailable: true
+      };
+    }
+    
+    if (type === 'Code') {
+      const isGitHub = src === 'github' || url.includes('github.com');
+      return {
+        label: isGitHub ? "Open Repository" : "Download ZIP",
+        icon: isGitHub ? "📁" : "⬇",
+        href,
+        isAvailable: true
+      };
+    }
+    
+    if (type === 'Project') {
+      const isCloud = ['gdrive', 'onedrive', 'dropbox', 'github_release', 'external'].includes(src) || 
+                      url.includes('drive.google') || url.includes('dropbox.com') || 
+                      url.includes('onedrive') || url.includes('1drv.ms') || url.includes('sharepoint.com') ||
+                      url.includes('github.com') && url.includes('/releases');
+      return {
+        label: isCloud ? "Open/Preview" : "Download ZIP",
+        icon: isCloud ? "👁" : "⬇",
+        href,
+        isAvailable: true
+      };
+    }
+    
+    return {
+      label: `Download ${type}`,
+      icon: "⬇",
+      href,
+      isAvailable: true
+    };
+  };
+
+  const renderMaterialButton = (type, fileUrl, source) => {
+    const info = getMaterialInfo(type, fileUrl, source);
+    
     return (
       <a
-        href={href}
-        target={isAvailable ? "_blank" : undefined}
+        href={info.href}
+        target={info.isAvailable ? "_blank" : undefined}
         rel="noopener noreferrer"
-        className={`material-btn ${isAvailable ? '' : 'disabled'}`}
+        className={`material-btn ${info.isAvailable ? '' : 'disabled'}`}
         onClick={(e) => {
-          if (!isAvailable) {
+          if (!info.isAvailable) {
             e.preventDefault();
           }
         }}
       >
-        <span style={{ fontSize: '14px' }}>⬇</span>
-        <span>{label}</span>
+        <span style={{ fontSize: '14px' }}>{info.icon}</span>
+        <span>{info.label}</span>
       </a>
     );
   };
@@ -587,13 +658,16 @@ export default function PathwayDetailLayout({
                 </div>
               ) : (
                 videoUrl ? (
-                  videoUrl.toLowerCase().endsWith('.mp4') ||
-                  videoUrl.toLowerCase().endsWith('.webm') ||
-                  videoUrl.toLowerCase().endsWith('.ogg') ||
-                  videoUrl.includes('w3schools.com') ||
-                  videoUrl.includes('/uploads/') ? (
+                  activeLesson?.videoSource === 'upload' ||
+                  (!activeLesson?.videoSource && (
+                    videoUrl.toLowerCase().endsWith('.mp4') ||
+                    videoUrl.toLowerCase().endsWith('.webm') ||
+                    videoUrl.toLowerCase().endsWith('.ogg') ||
+                    videoUrl.includes('w3schools.com') ||
+                    videoUrl.includes('/uploads/')
+                  )) ? (
                     <video
-                      src={videoUrl}
+                      src={videoUrl.startsWith('/api') ? `http://127.0.0.1:5000${videoUrl}` : videoUrl}
                       controls
                       autoPlay
                       controlsList="nodownload"
@@ -602,12 +676,13 @@ export default function PathwayDetailLayout({
                   ) : (
                     <iframe
                       src={(() => {
-                        const sep = videoUrl.includes('?') ? '&' : '?';
-                        return `${videoUrl}${sep}autoplay=1`;
+                        const embed = getEmbedUrl(videoUrl);
+                        const sep = embed.includes('?') ? '&' : '?';
+                        return `${embed}${sep}autoplay=1`;
                       })()}
                       title={title}
                       style={{ width: '100%', height: '100%', border: 'none' }}
-                      allow="autoplay"
+                      allow="autoplay; encrypted-media"
                       allowFullScreen
                     ></iframe>
                   )
@@ -623,10 +698,10 @@ export default function PathwayDetailLayout({
             <div className="materials-section ui-panel" style={{ marginTop: '24px' }}>
               <h4 className="panel-title" style={{ marginBottom: '16px', borderBottom: 'none', paddingBottom: 0 }}>Lesson Materials</h4>
               <div className="materials-grid">
-                {renderMaterialButton("Download PDF", activeLesson?.pdf_file || activeLesson?.pdf_url)}
-                {renderMaterialButton("Download Notes", activeLesson?.notes_file || activeLesson?.code_url)}
-                {renderMaterialButton("Download Assignment", activeLesson?.assignment_file)}
-                {renderMaterialButton("Download Resources", activeLesson?.resources_file || activeLesson?.files_url)}
+                {renderMaterialButton("PDF", activeLesson?.pdf_file || activeLesson?.pdf_url || activeLesson?.notesUrl, activeLesson?.notesSource)}
+                {renderMaterialButton("Code", activeLesson?.notes_file || activeLesson?.code_url || activeLesson?.sourceCodeUrl, activeLesson?.sourceCodeSource)}
+                {renderMaterialButton("Assignment", activeLesson?.assignment_file)}
+                {renderMaterialButton("Project", activeLesson?.resources_file || activeLesson?.files_url || activeLesson?.projectUrl, activeLesson?.projectSource)}
               </div>
             </div>
           </div>

@@ -124,6 +124,14 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
     pdf_url: '',
     code_url: '',
     files_url: '',
+    videoSource: 'upload',
+    videoUrl: '',
+    notesSource: 'upload',
+    notesUrl: '',
+    sourceCodeSource: 'upload',
+    sourceCodeUrl: '',
+    projectSource: 'upload',
+    projectUrl: '',
     order: 0
   });
 
@@ -145,6 +153,14 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
     notes_file: '',
     assignment_file: '',
     resources_file: '',
+    videoSource: 'upload',
+    videoUrl: '',
+    notesSource: 'upload',
+    notesUrl: '',
+    sourceCodeSource: 'upload',
+    sourceCodeUrl: '',
+    projectSource: 'upload',
+    projectUrl: '',
     order: 0
   });
 
@@ -374,28 +390,63 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
     setUploading(true);
     
     try {
-      // 1. Upload files first
-      let videoUrl = lessonForm.video_url;
-      let pdfUrl = lessonForm.pdf_url;
-      let codeUrl = lessonForm.code_url;
-      let filesUrl = lessonForm.files_url;
+      let finalVideoUrl = lessonForm.videoUrl;
+      let finalPdfUrl = lessonForm.notesUrl;
+      let finalCodeUrl = lessonForm.sourceCodeUrl;
+      let finalFilesUrl = lessonForm.projectUrl;
 
-      if (selectedVideo) {
-        const url = await uploadFile(selectedVideo);
-        if (url) videoUrl = `${apiUrl}${url}`;
+      // 1. Upload files first if source is 'upload'
+      if (lessonForm.videoSource === 'upload') {
+        if (selectedVideo) {
+          const url = await uploadFile(selectedVideo);
+          if (url) finalVideoUrl = url;
+        } else {
+          finalVideoUrl = lessonForm.video_url;
+        }
       }
-      if (selectedPdf) {
-        const url = await uploadFile(selectedPdf);
-        if (url) pdfUrl = `${apiUrl}${url}`;
+      
+      if (lessonForm.notesSource === 'upload') {
+        if (selectedPdf) {
+          const url = await uploadFile(selectedPdf);
+          if (url) finalPdfUrl = url;
+        } else {
+          finalPdfUrl = lessonForm.pdf_url;
+        }
       }
-      if (selectedZip) {
-        const url = await uploadFile(selectedZip);
-        if (url) codeUrl = `${apiUrl}${url}`;
+
+      if (lessonForm.sourceCodeSource === 'upload') {
+        if (selectedZip) {
+          const url = await uploadFile(selectedZip);
+          if (url) finalCodeUrl = url;
+        } else {
+          finalCodeUrl = lessonForm.code_url;
+        }
       }
-      if (selectedFiles) {
-        const url = await uploadFile(selectedFiles);
-        if (url) filesUrl = `${apiUrl}${url}`;
+
+      if (lessonForm.projectSource === 'upload') {
+        if (selectedFiles) {
+          const url = await uploadFile(selectedFiles);
+          if (url) finalFilesUrl = url;
+        } else {
+          finalFilesUrl = lessonForm.files_url;
+        }
       }
+
+      const payload = {
+        ...lessonForm,
+        course_id: selectedCourse._id,
+        video_url: finalVideoUrl,
+        videoUrl: finalVideoUrl,
+        pdf_url: finalPdfUrl,
+        pdfUrl: finalPdfUrl,
+        notesUrl: finalPdfUrl,
+        code_url: finalCodeUrl,
+        codeUrl: finalCodeUrl,
+        sourceCodeUrl: finalCodeUrl,
+        files_url: finalFilesUrl,
+        filesUrl: finalFilesUrl,
+        projectUrl: finalFilesUrl
+      };
 
       // 2. Submit lesson metadata
       const res = await fetch(`${apiUrl}/api/modules/${selectedModule._id}/lessons`, {
@@ -404,14 +455,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...lessonForm,
-          course_id: selectedCourse._id,
-          video_url: videoUrl,
-          pdf_url: pdfUrl,
-          code_url: codeUrl,
-          files_url: filesUrl
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
@@ -425,15 +469,26 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
           pdf_url: '',
           code_url: '',
           files_url: '',
+          videoSource: 'upload',
+          videoUrl: '',
+          notesSource: 'upload',
+          notesUrl: '',
+          sourceCodeSource: 'upload',
+          sourceCodeUrl: '',
+          projectSource: 'upload',
+          projectUrl: '',
           order: 0
         });
         setSelectedVideo(null);
         setSelectedPdf(null);
         setSelectedZip(null);
         setSelectedFiles(null);
+      } else {
+        alert(data.message || 'Failed to create lesson');
       }
     } catch (err) {
       console.error(err);
+      alert('Error creating lesson');
     } finally {
       setSubmitting(false);
       setUploading(false);
@@ -497,28 +552,62 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
     setUploading(true);
     
     try {
-      // 1. Upload files if selected
-      let videoUrl = editLessonForm.video_url;
-      let pdfUrl = editLessonForm.pdf_url;
-      let codeUrl = editLessonForm.code_url;
-      let filesUrl = editLessonForm.files_url;
+      let finalVideoUrl = editLessonForm.videoUrl;
+      let finalPdfUrl = editLessonForm.notesUrl;
+      let finalCodeUrl = editLessonForm.sourceCodeUrl;
+      let finalFilesUrl = editLessonForm.projectUrl;
 
-      if (selectedVideo) {
-        const url = await uploadFile(selectedVideo);
-        if (url) videoUrl = `${apiUrl}${url}`;
+      // 1. Upload files if selected and source is upload
+      if (editLessonForm.videoSource === 'upload') {
+        if (selectedVideo) {
+          const url = await uploadFile(selectedVideo);
+          if (url) finalVideoUrl = url;
+        } else {
+          finalVideoUrl = editLessonForm.video_url;
+        }
       }
-      if (selectedPdf) {
-        const url = await uploadFile(selectedPdf);
-        if (url) pdfUrl = `${apiUrl}${url}`;
+      
+      if (editLessonForm.notesSource === 'upload') {
+        if (selectedPdf) {
+          const url = await uploadFile(selectedPdf);
+          if (url) finalPdfUrl = url;
+        } else {
+          finalPdfUrl = editLessonForm.pdf_url;
+        }
       }
-      if (selectedZip) {
-        const url = await uploadFile(selectedZip);
-        if (url) codeUrl = `${apiUrl}${url}`;
+
+      if (editLessonForm.sourceCodeSource === 'upload') {
+        if (selectedZip) {
+          const url = await uploadFile(selectedZip);
+          if (url) finalCodeUrl = url;
+        } else {
+          finalCodeUrl = editLessonForm.code_url;
+        }
       }
-      if (selectedFiles) {
-        const url = await uploadFile(selectedFiles);
-        if (url) filesUrl = `${apiUrl}${url}`;
+
+      if (editLessonForm.projectSource === 'upload') {
+        if (selectedFiles) {
+          const url = await uploadFile(selectedFiles);
+          if (url) finalFilesUrl = url;
+        } else {
+          finalFilesUrl = editLessonForm.files_url;
+        }
       }
+
+      const payload = {
+        ...editLessonForm,
+        video_url: finalVideoUrl,
+        videoUrl: finalVideoUrl,
+        pdf_url: finalPdfUrl,
+        pdfUrl: finalPdfUrl,
+        notesUrl: finalPdfUrl,
+        code_url: finalCodeUrl,
+        codeUrl: finalCodeUrl,
+        sourceCodeUrl: finalCodeUrl,
+        files_url: finalFilesUrl,
+        filesUrl: finalFilesUrl,
+        projectUrl: finalFilesUrl
+      };
 
       // 2. Submit updated metadata
       const res = await fetch(`${apiUrl}/api/lessons/${editingLesson._id}`, {
@@ -527,13 +616,7 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...editLessonForm,
-          video_url: videoUrl,
-          pdf_url: pdfUrl,
-          code_url: codeUrl,
-          files_url: filesUrl
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
@@ -544,9 +627,12 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
         setSelectedPdf(null);
         setSelectedZip(null);
         setSelectedFiles(null);
+      } else {
+        alert(data.message || 'Failed to update lesson');
       }
     } catch (err) {
       console.error(err);
+      alert('Error updating lesson');
     } finally {
       setSubmitting(false);
       setUploading(false);
@@ -821,6 +907,14 @@ const CourseManagementView = ({ apiUrl, token, adminProfile, user }) => {
                             notes_file: l.notes_file || '',
                             assignment_file: l.assignment_file || '',
                             resources_file: l.resources_file || '',
+                            videoSource: l.videoSource || 'upload',
+                            videoUrl: l.videoUrl || l.video_url || '',
+                            notesSource: l.notesSource || 'upload',
+                            notesUrl: l.notesUrl || l.pdf_url || '',
+                            sourceCodeSource: l.sourceCodeSource || 'upload',
+                            sourceCodeUrl: l.sourceCodeUrl || l.code_url || '',
+                            projectSource: l.projectSource || 'upload',
+                            projectUrl: l.projectUrl || l.files_url || '',
                             order: l.order || 0
                           });
                         }}

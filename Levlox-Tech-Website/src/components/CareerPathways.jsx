@@ -263,7 +263,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
 
     const moduleTitles = lessons.map(l => l.title);
     const activeLesson = lessons[activeModuleIdx];
-    const videoUrl = activeLesson ? activeLesson.video_url : "";
+    const videoUrl = activeLesson ? (activeLesson.videoUrl || activeLesson.video_url) : "";
     const isVideoLocked = activeLesson ? false : true;
 
     console.log("DEBUG: selectedDetailCourse =", selectedDetailCourse);

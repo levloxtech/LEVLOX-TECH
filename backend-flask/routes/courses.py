@@ -569,6 +569,33 @@ def get_lessons(module_id):
     
     return jsonify({"status": "success", "lessons": lessons}), 200
 
+def validate_resource_url(url, source_type):
+    if not url:
+        return True, ""
+    import re
+    if source_type == "youtube":
+        if not re.match(r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$", url):
+            return False, "Invalid YouTube URL format."
+    elif source_type == "vimeo":
+        if not re.match(r"^(https?://)?(www\.)?(vimeo\.com|player\.vimeo\.com)/.+$", url):
+            return False, "Invalid Vimeo URL format."
+    elif source_type == "github":
+        if not re.match(r"^(https?://)?(www\.)?github\.com/.+$", url):
+            return False, "Invalid GitHub URL format (must be github.com)."
+    elif source_type == "gdrive":
+        if not re.match(r"^(https?://)?(www\.)?(drive\.google\.com|docs\.google\.com)/.+$", url):
+            return False, "Invalid Google Drive URL format."
+    elif source_type == "onedrive":
+        if not re.match(r"^(https?://)?(www\.)?(onedrive\.live\.com|1drv\.ms|sharepoint\.com)/.+$", url):
+            return False, "Invalid OneDrive URL format."
+    elif source_type == "dropbox":
+        if not re.match(r"^(https?://)?(www\.)?(dropbox\.com|dl\.dropboxusercontent\.com)/.+$", url):
+            return False, "Invalid Dropbox URL format."
+    elif source_type == "external":
+        if not re.match(r"^(https?://).+$", url):
+            return False, "Invalid URL format (must start with http:// or https://)."
+    return True, ""
+
 @courses_bp.route("/api/modules/<module_id>/lessons", methods=["POST"])
 def create_lesson(module_id):
     db = mongo_db.get_db()
@@ -580,6 +607,15 @@ def create_lesson(module_id):
     if not title:
         return jsonify({"status": "error", "message": "Lesson title is required"}), 400
         
+    # Perform validations
+    for prefix in ["video", "notes", "sourceCode", "project"]:
+        src = data.get(f"{prefix}Source")
+        url = data.get(f"{prefix}Url")
+        if src and src != "upload":
+            ok, msg = validate_resource_url(url, src)
+            if not ok:
+                return jsonify({"status": "error", "message": f"{prefix.capitalize()}: {msg}"}), 400
+
     lesson_data = {
         "module_id": module_id,
         "course_id": data.get("course_id"),
@@ -593,6 +629,14 @@ def create_lesson(module_id):
         "notes_file": data.get("notes_file", ""),
         "assignment_file": data.get("assignment_file", ""),
         "resources_file": data.get("resources_file", ""),
+        "videoSource": data.get("videoSource", "upload"),
+        "videoUrl": data.get("videoUrl", ""),
+        "notesSource": data.get("notesSource", "upload"),
+        "notesUrl": data.get("notesUrl", ""),
+        "sourceCodeSource": data.get("sourceCodeSource", "upload"),
+        "sourceCodeUrl": data.get("sourceCodeUrl", ""),
+        "projectSource": data.get("projectSource", "upload"),
+        "projectUrl": data.get("projectUrl", ""),
         "order": int(data.get("order", 0)),
         "createdAt": datetime.utcnow()
     }
@@ -608,10 +652,21 @@ def update_lesson(lesson_id):
         
     data = request.get_json() or {}
     
+    # Perform validations
+    for prefix in ["video", "notes", "sourceCode", "project"]:
+        src = data.get(f"{prefix}Source")
+        url = data.get(f"{prefix}Url")
+        if src and src != "upload":
+            ok, msg = validate_resource_url(url, src)
+            if not ok:
+                return jsonify({"status": "error", "message": f"{prefix.capitalize()}: {msg}"}), 400
+
     update_data = {}
     fields = [
         "title", "description", "video_url", "pdf_url", "code_url", "files_url",
-        "pdf_file", "notes_file", "assignment_file", "resources_file", "status"
+        "pdf_file", "notes_file", "assignment_file", "resources_file", "status",
+        "videoSource", "videoUrl", "notesSource", "notesUrl",
+        "sourceCodeSource", "sourceCodeUrl", "projectSource", "projectUrl"
     ]
     for f in fields:
         if f in data:
