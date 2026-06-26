@@ -6,6 +6,7 @@ const BRAND_VIDEO_URL = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'; 
 export default function Hero() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
 
   useEffect(() => {
     const fetchHeroVideo = async () => {
@@ -20,6 +21,16 @@ export default function Hero() {
               const baseURL = api.defaults.baseURL || 'http://127.0.0.1:5000/api';
               const cleanBase = baseURL.endsWith('/api') ? baseURL.substring(0, baseURL.length - 4) : baseURL;
               setVideoUrl(`${cleanBase}${fetchedUrl}`);
+            }
+          }
+          const fetchedThumb = res.data.video.thumbnailUrl;
+          if (fetchedThumb) {
+            if (fetchedThumb.startsWith('http')) {
+              setThumbnailUrl(fetchedThumb);
+            } else {
+              const baseURL = api.defaults.baseURL || 'http://127.0.0.1:5000/api';
+              const cleanBase = baseURL.endsWith('/api') ? baseURL.substring(0, baseURL.length - 4) : baseURL;
+              setThumbnailUrl(`${cleanBase}${fetchedThumb}`);
             }
           }
         }
@@ -151,7 +162,7 @@ export default function Hero() {
          <div className="hero-video-wrapper">
            <div className="hero-video-card" onClick={() => setIsPlaying(true)}>
              <img 
-                 src="/brand_story_thumb.png" 
+                 src={thumbnailUrl || "/brand_story_thumb.png"} 
                  alt="Levlox Brand Story" 
                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
              />

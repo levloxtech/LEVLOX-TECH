@@ -284,18 +284,98 @@ def get_public_active_video_metadata():
             "video": {
                 "url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1",
                 "filename": "Fallback YouTube Video",
-                "uploadDate": None
+                "uploadDate": None,
+                "thumbnailUrl": None
             }
         }), 200
         
+    thumbnail_url = "/api/hero-video/active/thumbnail" if video.get("thumbnail_file_id") else None
     return jsonify({
         "status": "success",
         "video": {
             "url": "/api/hero-video/active",
             "filename": video.get("original_filename") or video.get("filename"),
-            "uploadDate": video.get("uploaded_at")
+            "uploadDate": video.get("uploaded_at"),
+            "thumbnailUrl": thumbnail_url
         }
     }), 200
+
+@admin_bp.route("/api/admin/hero-video/thumbnail", methods=["POST"])
+@jwt_required()
+def upload_hero_video_thumbnail():
+    """Upload thumbnail image for the active Hero Video."""
+    db = mongo_db.get_db()
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not initialized"}), 500
+        
+    current_email = get_jwt_identity()
+    # Check admin role
+    profile = db.admin_profiles.find_one({"email": current_email})
+    if not profile and current_email != "admin@levlox.com":
+        return jsonify({"status": "error", "message": "Unauthorized. Admin access required."}), 403
+
+    active_video = db.hero_videos.find_one({"status": "active"})
+    if not active_video:
+        return jsonify({"status": "error", "message": "Please upload a Hero Video first before setting its thumbnail."}), 400
+
+    if 'hero_thumbnail' not in request.files:
+        return jsonify({"status": "error", "message": "No hero_thumbnail file part"}), 400
+        
+    file = request.files['hero_thumbnail']
+    if file.filename == '':
+        return jsonify({"status": "error", "message": "No selected file"}), 400
+
+    from utils.file_storage import save_file_to_gridfs, delete_file_from_gridfs
+    try:
+        # Save to GridFS (category: "profile_image" config limits used as fallback, i.e., 2MB images)
+        gridfs_res = save_file_to_gridfs(file, category="profile_image")
+    except ValueError as val_err:
+        return jsonify({"status": "error", "message": str(val_err)}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to upload thumbnail: {str(e)}"}), 500
+
+    # Delete previous thumbnail if exists
+    prev_thumb_id = active_video.get("thumbnail_file_id")
+    if prev_thumb_id:
+        try:
+            delete_file_from_gridfs(prev_thumb_id)
+        except Exception:
+            pass
+
+    # Update active video document with thumbnail ID
+    db.hero_videos.update_one(
+        {"_id": active_video["_id"]},
+        {"$set": {"thumbnail_file_id": gridfs_res["file_id"]}}
+    )
+
+    thumbnail_url = "/api/hero-video/active/thumbnail"
+    mongo_db.log_activity(f"Uploaded new thumbnail for Hero Video: {active_video['original_filename']}")
+    
+    return jsonify({
+        "status": "success",
+        "message": "Hero video thumbnail uploaded successfully",
+        "thumbnailUrl": thumbnail_url
+    }), 200
+
+@admin_bp.route("/api/hero-video/active/thumbnail", methods=["GET"])
+def get_active_hero_video_thumbnail():
+    """Serves the active hero video thumbnail from GridFS."""
+    db = mongo_db.get_db()
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not initialized"}), 500
+        
+    video = db.hero_videos.find_one({"status": "active"})
+    if not video or not video.get("thumbnail_file_id"):
+        return jsonify({"status": "error", "message": "No active thumbnail found"}), 404
+        
+    from utils.file_storage import get_file_from_gridfs
+    from flask import Response
+    
+    try:
+        grid_out = get_file_from_gridfs(video["thumbnail_file_id"])
+        return Response(grid_out.read(), mimetype=grid_out.content_type)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 404
 
 @admin_bp.route("/api/admin/hero-video/active/metadata", methods=["GET"])
 @jwt_required()

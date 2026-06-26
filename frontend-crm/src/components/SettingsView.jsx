@@ -45,6 +45,12 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
   const [heroVideoError, setHeroVideoError] = useState('');
   const [heroVideoSuccess, setHeroVideoSuccess] = useState('');
 
+  // Hero Video Thumbnail upload state
+  const [selectedThumbnailFile, setSelectedThumbnailFile] = useState(null);
+  const [thumbnailProgress, setThumbnailProgress] = useState(null);
+  const [thumbnailError, setThumbnailError] = useState('');
+  const [thumbnailSuccess, setThumbnailSuccess] = useState('');
+
   // UI state
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'system' | 'uploads'
   const [loading, setLoading] = useState(false);
@@ -435,6 +441,95 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
         setHeroVideoError('CORS configuration error or server unavailable.');
       } else {
         setHeroVideoError(`Network communication failed during video upload (Status: ${xhr.status})`);
+      }
+    };
+
+    xhr.send(formData);
+  };
+
+  // Thumbnail File Select
+  const handleThumbnailSelect = (e) => {
+    const file = e.target.files[0];
+    setThumbnailError('');
+    setThumbnailSuccess('');
+    
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setThumbnailError('Thumbnail must be less than 2MB.');
+      return;
+    }
+
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const extension = file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      setThumbnailError(`Only ${allowedExtensions.join(', ').toUpperCase()} files are allowed.`);
+      return;
+    }
+
+    setSelectedThumbnailFile(file);
+  };
+
+  // Thumbnail Upload
+  const handleThumbnailUpload = () => {
+    if (!selectedThumbnailFile) return;
+
+    setThumbnailError('');
+    setThumbnailSuccess('');
+    setThumbnailProgress(0);
+
+    const formData = new FormData();
+    formData.append('hero_thumbnail', selectedThumbnailFile);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${apiUrl}/api/admin/hero-video/thumbnail`, true);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setThumbnailProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      setThumbnailProgress(null);
+      
+      if (xhr.status === 401) {
+        setThumbnailError('Authentication expired.');
+        return;
+      }
+
+      if (xhr.status === 413) {
+        setThumbnailError('Thumbnail exceeds maximum size.');
+        return;
+      }
+
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && data.status === 'success') {
+          setThumbnailSuccess('Thumbnail uploaded successfully!');
+          setSelectedThumbnailFile(null);
+          showToast('Hero Video thumbnail updated!');
+          fetchActiveHeroVideo();
+        } else {
+          setThumbnailError(data.message || 'Upload failed');
+        }
+      } catch (e) {
+        if (xhr.status >= 500) {
+          setThumbnailError('Server unavailable.');
+        } else {
+          setThumbnailError('Response error from server');
+        }
+      }
+    };
+
+    xhr.onerror = () => {
+      setThumbnailProgress(null);
+      if (xhr.status === 0) {
+        setThumbnailError('CORS configuration error or server unavailable.');
+      } else {
+        setThumbnailError(`Network communication failed (Status: ${xhr.status})`);
       }
     };
 
@@ -1146,6 +1241,115 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
             </div>
           </div>
+
+          {/* HERO VIDEO THUMBNAIL MANAGER */}
+          {activeHeroVideo && (
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="border-b border-gray-50 pb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-900 font-extrabold text-sm">
+                  <Image size={16} />
+                  <span>Hero Video Poster / Thumbnail Manager</span>
+                </div>
+                <span className="text-[10px] text-zinc-500 bg-zinc-100 px-2.5 py-0.5 rounded-full font-bold">Set video poster image</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* CURRENT THUMBNAIL PREVIEW */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Current Poster Image</h4>
+                  {activeHeroVideo.thumbnail_file_id ? (
+                    <div className="rounded-2xl overflow-hidden border border-gray-150 bg-black aspect-video shadow-md relative">
+                      <img 
+                        src={`${apiUrl}/api/hero-video/active/thumbnail?t=${new Date().getTime()}`} 
+                        alt="Hero Video Poster" 
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl py-12 flex flex-col items-center justify-center text-center p-4">
+                      <Image className="w-12 h-12 text-gray-300 mb-2" />
+                      <p className="text-xs font-bold text-gray-400">No custom poster image uploaded.</p>
+                      <p className="text-[10px] text-gray-400 max-w-xs mt-1">Default landing page thumbnail will be displayed.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* UPLOAD NEW THUMBNAIL */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Upload Custom Poster</h4>
+                  
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-4 flex flex-col justify-center min-h-[160px] relative bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                    <input 
+                      type="file" 
+                      id="heroThumbnailInput"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleThumbnailSelect} 
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    <div className="flex flex-col items-center justify-center">
+                      <Upload className="w-8 h-8 text-[#6b21e8] mb-2" />
+                      {selectedThumbnailFile ? (
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold text-zinc-900 max-w-xs truncate">{selectedThumbnailFile.name}</p>
+                          <p className="text-[10px] text-gray-500 font-bold">{formatBytes(selectedThumbnailFile.size)}</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-xs font-bold text-gray-600">Drag or click to choose image file</p>
+                          <p className="text-[10px] text-gray-400">JPG, PNG or WEBP up to 2MB</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {thumbnailProgress !== null && (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-[10px] font-bold text-[#6b21e8] uppercase">
+                        <span>Uploading Poster...</span>
+                        <span>{thumbnailProgress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-[#6b21e8] h-full transition-all duration-200"
+                          style={{ width: `${thumbnailProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {thumbnailError && (
+                    <div className="bg-red-50 text-red-600 border border-red-100 text-xs px-4 py-2.5 rounded-xl font-medium">
+                      {thumbnailError}
+                    </div>
+                  )}
+
+                  {thumbnailSuccess && (
+                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs px-4 py-2.5 rounded-xl font-medium">
+                      {thumbnailSuccess}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    {selectedThumbnailFile && (
+                      <button 
+                        onClick={() => setSelectedThumbnailFile(null)}
+                        className="flex-1 bg-gray-100 hover:bg-gray-250 text-gray-700 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        Clear Selection
+                      </button>
+                    )}
+                    <button 
+                      onClick={handleThumbnailUpload}
+                      disabled={!selectedThumbnailFile || thumbnailProgress !== null}
+                      className="flex-1 bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Upload and Set Poster
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
 
