@@ -44,6 +44,9 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
   const [heroVideoProgress, setHeroVideoProgress] = useState(null);
   const [heroVideoError, setHeroVideoError] = useState('');
   const [heroVideoSuccess, setHeroVideoSuccess] = useState('');
+  const [videoSourceTab, setVideoSourceTab] = useState('upload'); // 'upload' | 'youtube'
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [youtubeTitle, setYoutubeTitle] = useState('Levlox Tech Brand Story');
 
   // Hero Video Thumbnail upload state
   const [selectedThumbnailFile, setSelectedThumbnailFile] = useState(null);
@@ -445,6 +448,59 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     };
 
     xhr.send(formData);
+  };
+
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    let videoId = '';
+    if (url.includes('youtube.com/watch')) {
+      const urlParams = new URLSearchParams(new URL(url).search);
+      videoId = urlParams.get('v');
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1]?.split('?')[0];
+    } else if (url.includes('youtube.com/embed/')) {
+      videoId = url.split('youtube.com/embed/')[1]?.split('?')[0];
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  };
+
+  const handleYoutubeSave = async (e) => {
+    e.preventDefault();
+    if (!youtubeUrl.trim()) {
+      setHeroVideoError('YouTube URL is required.');
+      return;
+    }
+    
+    setHeroVideoError('');
+    setHeroVideoSuccess('');
+    setSubmitting(true);
+    
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/hero-video/youtube`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          youtube_url: youtubeUrl,
+          title: youtubeTitle
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setHeroVideoSuccess('YouTube Hero Video saved and activated successfully!');
+        setActiveHeroVideo(data.video);
+        setYoutubeUrl('');
+        showToast('YouTube Video updated!');
+      } else {
+        setHeroVideoError(data.message || 'Configuration failed');
+      }
+    } catch (err) {
+      setHeroVideoError('Failed to connect to backend server');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Thumbnail File Select
@@ -1121,26 +1177,56 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 {activeHeroVideo ? (
                   <div className="space-y-3">
                     <div className="rounded-2xl overflow-hidden border border-gray-150 bg-black aspect-video shadow-md relative">
-                      <video 
-                        key={activeHeroVideo.file_id}
-                        controls 
-                        className="w-full h-full object-contain"
-                        preload="metadata"
-                      >
-                        <source src={`${apiUrl}/api/hero-video/active`} type={activeHeroVideo.content_type || 'video/mp4'} />
-                        Your browser does not support the video tag.
-                      </video>
+                      {activeHeroVideo.source_type === 'youtube' ? (
+                        <iframe
+                          src={getEmbedUrl(activeHeroVideo.url)}
+                          title="Active Hero Video (YouTube)"
+                          className="w-full h-full"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      ) : (
+                        <video 
+                          key={activeHeroVideo.file_id || 'active-video'}
+                          controls 
+                          className="w-full h-full object-contain"
+                          preload="metadata"
+                        >
+                          <source src={`${apiUrl}/api/hero-video/active`} type={activeHeroVideo.content_type || 'video/mp4'} />
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-500 font-medium">Original Filename:</span>
-                        <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.original_filename}</span>
+                        <span className="text-gray-500 font-medium">Source Type:</span>
+                        <span className="font-bold text-[#6b21e8] capitalize">{activeHeroVideo.source_type || 'upload'}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 font-medium">File Size:</span>
-                        <span className="font-semibold text-gray-900">{formatBytes(activeHeroVideo.size)}</span>
-                      </div>
+                      {activeHeroVideo.source_type === 'youtube' ? (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500 font-medium">Video Title:</span>
+                            <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.title || 'YouTube Video'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500 font-medium">URL:</span>
+                            <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.url}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500 font-medium">Original Filename:</span>
+                            <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.original_filename}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500 font-medium">File Size:</span>
+                            <span className="font-semibold text-gray-900">{formatBytes(activeHeroVideo.size)}</span>
+                          </div>
+                        </>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-gray-500 font-medium">Upload Date:</span>
                         <span className="font-semibold text-gray-900">
@@ -1159,51 +1245,129 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                   <div className="border-2 border-dashed border-gray-200 rounded-2xl py-12 flex flex-col items-center justify-center text-center p-4">
                     <Film className="w-12 h-12 text-gray-300 mb-2" />
                     <p className="text-xs font-bold text-gray-400">No active Hero Video currently uploaded.</p>
-                    <p className="text-[10px] text-gray-400 max-w-xs mt-1">Upload a video on the right to set the home page hero video.</p>
+                    <p className="text-[10px] text-gray-400 max-w-xs mt-1">Configure a source on the right to set the home page hero video.</p>
                   </div>
                 )}
               </div>
 
-              {/* UPLOAD NEW VIDEO */}
+              {/* REPLACE ACTIVE VIDEO CONTAINER */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Upload & Replace Active Video</h4>
-                
-                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-4 flex flex-col justify-center min-h-[160px] relative bg-gray-50 hover:bg-gray-100/50 transition-colors">
-                  <input 
-                    type="file" 
-                    id="heroVideoInput"
-                    accept="video/mp4,video/webm,video/mov"
-                    onChange={handleHeroFileSelect} 
-                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                  />
-                  <div className="flex flex-col items-center justify-center">
-                    <Upload className="w-8 h-8 text-[#6b21e8] mb-2" />
-                    {selectedHeroFile ? (
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold text-zinc-900 max-w-xs truncate">{selectedHeroFile.name}</p>
-                        <p className="text-[10px] text-gray-500 font-bold">{formatBytes(selectedHeroFile.size)}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold text-gray-600">Drag or click to choose video file</p>
-                        <p className="text-[10px] text-gray-400">MP4, WebM or MOV up to {uploadSettings.heroVideo?.maxSizeMB || 100}MB</p>
-                      </div>
-                    )}
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Configure Video Source</h4>
+                  <div className="flex bg-gray-100 p-1 rounded-xl">
+                    <button 
+                      type="button"
+                      onClick={() => { setVideoSourceTab('upload'); setHeroVideoError(''); setHeroVideoSuccess(''); }}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                        videoSourceTab === 'upload' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
+                      }`}
+                    >
+                      Upload Video
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => { setVideoSourceTab('youtube'); setHeroVideoError(''); setHeroVideoSuccess(''); }}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all ${
+                        videoSourceTab === 'youtube' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
+                      }`}
+                    >
+                      YouTube URL
+                    </button>
                   </div>
                 </div>
-
-                {heroVideoProgress !== null && (
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-bold text-[#6b21e8] uppercase">
-                      <span>Uploading Video...</span>
-                      <span>{heroVideoProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-[#6b21e8] h-full transition-all duration-200"
-                        style={{ width: `${heroVideoProgress}%` }}
+                
+                {videoSourceTab === 'upload' ? (
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-4 flex flex-col justify-center min-h-[160px] relative bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                      <input 
+                        type="file" 
+                        id="heroVideoInput"
+                        accept="video/mp4,video/webm,video/mov"
+                        onChange={handleHeroFileSelect} 
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                       />
+                      <div className="flex flex-col items-center justify-center">
+                        <Upload className="w-8 h-8 text-[#6b21e8] mb-2" />
+                        {selectedHeroFile ? (
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-zinc-900 max-w-xs truncate">{selectedHeroFile.name}</p>
+                            <p className="text-[10px] text-gray-500 font-bold">{formatBytes(selectedHeroFile.size)}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold text-gray-600">Drag or click to choose video file</p>
+                            <p className="text-[10px] text-gray-400">MP4, WebM or MOV up to {uploadSettings.heroVideo?.maxSizeMB || 100}MB</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {heroVideoProgress !== null && (
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[10px] font-bold text-[#6b21e8] uppercase">
+                          <span>Uploading Video...</span>
+                          <span>{heroVideoProgress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-[#6b21e8] h-full transition-all duration-200"
+                            style={{ width: `${heroVideoProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      {selectedHeroFile && (
+                        <button 
+                          onClick={() => setSelectedHeroFile(null)}
+                          className="flex-1 bg-gray-100 hover:bg-gray-250 text-gray-700 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                        >
+                          Clear Selection
+                        </button>
+                      )}
+                      <button 
+                        onClick={handleHeroUpload}
+                        disabled={!selectedHeroFile || heroVideoProgress !== null}
+                        className="flex-1 bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        Upload and Set Active
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">YouTube URL</label>
+                        <input 
+                          type="url"
+                          value={youtubeUrl}
+                          onChange={(e) => setYoutubeUrl(e.target.value)}
+                          placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                          className="w-full bg-white border border-gray-150 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-zinc-300 font-medium"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Video Title</label>
+                        <input 
+                          type="text"
+                          value={youtubeTitle}
+                          onChange={(e) => setYoutubeTitle(e.target.value)}
+                          placeholder="e.g. Levlox Tech Brand Story"
+                          className="w-full bg-white border border-gray-150 rounded-xl px-4 py-2.5 text-xs outline-none focus:border-zinc-300 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleYoutubeSave}
+                      disabled={submitting}
+                      className="w-full bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Save YouTube URL & Set Active
+                    </button>
                   </div>
                 )}
 
@@ -1218,25 +1382,6 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                     {heroVideoSuccess}
                   </div>
                 )}
-
-                <div className="flex gap-3">
-                  {selectedHeroFile && (
-                    <button 
-                      onClick={() => setSelectedHeroFile(null)}
-                      className="flex-1 bg-gray-100 hover:bg-gray-250 text-gray-700 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-                    >
-                      Clear Selection
-                    </button>
-                  )}
-                  <button 
-                    onClick={handleHeroUpload}
-                    disabled={!selectedHeroFile || heroVideoProgress !== null}
-                    className="flex-1 bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-                  >
-                    Upload and Set Active
-                  </button>
-                </div>
-
               </div>
 
             </div>

@@ -5,12 +5,14 @@ export default function Hero() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [sourceType, setSourceType] = useState('upload');
 
   useEffect(() => {
     const fetchHeroVideo = async () => {
       try {
         const res = await api.get('/hero-video/active/metadata');
         if (res.data && res.data.status === 'success' && res.data.video) {
+          setSourceType(res.data.video.source_type || 'upload');
           const fetchedUrl = res.data.video.url;
           if (fetchedUrl) {
             if (fetchedUrl.startsWith('http')) {
@@ -219,12 +221,38 @@ export default function Hero() {
             style={{ position: 'relative', width: '100%', maxWidth: '1000px', background: '#000', borderRadius: '20px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}
           >
             <div style={{ position: 'relative', aspectRatio: '16/9' }}>
-              <video
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', border: 'none' }}
-              />
+              {sourceType === 'youtube' ? (
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src={(videoUrl.includes('youtube.com/embed') || videoUrl.includes('youtube-nocookie.com/embed')) ? `${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=1` : (
+                      (() => {
+                        let videoId = '';
+                        if (videoUrl.includes('youtube.com/watch')) {
+                          const urlParams = new URLSearchParams(new URL(videoUrl).search);
+                          videoId = urlParams.get('v');
+                        } else if (videoUrl.includes('youtu.be/')) {
+                          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                        } else if (videoUrl.includes('youtube.com/embed/')) {
+                          videoId = videoUrl.split('youtube.com/embed/')[1]?.split('?')[0];
+                        }
+                        return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : videoUrl;
+                      })()
+                    )}
+                    title="Levlox Tech Brand Story"
+                    frameBorder="0"
+                    allow="autoplay; encrypted-media; picture-in-picture; clipboard-write; encrypted-media; gyroscope"
+                    allowFullScreen
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                ></iframe>
+              ) : (
+                <video
+                    src={videoUrl}
+                    controls
+                    autoPlay
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', border: 'none' }}
+                />
+              )}
             </div>
             
             <button 

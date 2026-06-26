@@ -242,6 +242,12 @@ def upload_hero_video():
                     delete_file_from_gridfs(prev_file_id)
                 except Exception:
                     pass # ignore deletion errors for robustness
+            prev_thumb_id = previous_active.get("thumbnail_file_id")
+            if prev_thumb_id:
+                try:
+                    delete_file_from_gridfs(prev_thumb_id)
+                except Exception:
+                    pass
             db.hero_videos.delete_one({"_id": previous_active["_id"]})
     except Exception:
         pass
@@ -249,6 +255,7 @@ def upload_hero_video():
     now = datetime.utcnow()
     # Insert new active video
     video_doc = {
+        "source_type": "upload",
         "file_id": gridfs_res["file_id"],
         "filename": gridfs_res["filename"],
         "original_filename": gridfs_res["original_filename"],
@@ -270,6 +277,74 @@ def upload_hero_video():
         "video": video_doc
     }), 200
 
+@admin_bp.route("/api/admin/hero-video/youtube", methods=["POST"])
+@jwt_required()
+def set_youtube_hero_video():
+    db = mongo_db.get_db()
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not initialized"}), 500
+        
+    current_email = get_jwt_identity()
+    # Check admin role
+    profile = db.admin_profiles.find_one({"email": current_email})
+    if not profile and current_email != "admin@levlox.com":
+        return jsonify({"status": "error", "message": "Unauthorized. Admin access required."}), 403
+
+    data = request.get_json() or {}
+    youtube_url = data.get("youtube_url")
+    title = data.get("title", "YouTube Video")
+    
+    if not youtube_url:
+        return jsonify({"status": "error", "message": "YouTube URL is required"}), 400
+
+    # Basic YouTube URL validation
+    import re
+    youtube_regex = r"^(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+$"
+    if not re.match(youtube_regex, youtube_url):
+        return jsonify({"status": "error", "message": "Invalid YouTube URL format"}), 400
+
+    from utils.file_storage import delete_file_from_gridfs
+    # Clean up previous active hero video
+    try:
+        previous_active = db.hero_videos.find_one({"status": "active"})
+        if previous_active:
+            prev_file_id = previous_active.get("file_id")
+            if prev_file_id:
+                try:
+                    delete_file_from_gridfs(prev_file_id)
+                except Exception:
+                    pass
+            prev_thumb_id = previous_active.get("thumbnail_file_id")
+            if prev_thumb_id:
+                try:
+                    delete_file_from_gridfs(prev_thumb_id)
+                except Exception:
+                    pass
+            db.hero_videos.delete_one({"_id": previous_active["_id"]})
+    except Exception:
+        pass
+
+    now = datetime.utcnow()
+    video_doc = {
+        "source_type": "youtube",
+        "url": youtube_url,
+        "title": title,
+        "uploaded_at": now.isoformat(),
+        "status": "active"
+    }
+    
+    db.hero_videos.insert_one(video_doc)
+    video_doc["_id"] = str(video_doc["_id"])
+    
+    mongo_db.log_activity(f"Set YouTube URL as active Hero Video: {youtube_url}")
+    mongo_db.create_notification("Hero Video Update", f"YouTube Hero Video active: {title}")
+    
+    return jsonify({
+        "status": "success",
+        "message": "YouTube Hero Video configured successfully",
+        "video": video_doc
+    }), 200
+
 @admin_bp.route("/api/hero-video/active/metadata", methods=["GET"])
 def get_public_active_video_metadata():
     """Retrieve metadata of the currently active hero video for the public website."""
@@ -282,6 +357,7 @@ def get_public_active_video_metadata():
         return jsonify({
             "status": "success",
             "video": {
+                "source_type": "youtube",
                 "url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1",
                 "filename": "Fallback YouTube Video",
                 "uploadDate": None,
@@ -289,12 +365,19 @@ def get_public_active_video_metadata():
             }
         }), 200
         
+    source_type = video.get("source_type", "upload")
+    if source_type == "youtube":
+        url = video.get("url")
+    else:
+        url = "/api/hero-video/active"
+        
     thumbnail_url = "/api/hero-video/active/thumbnail" if video.get("thumbnail_file_id") else None
     return jsonify({
         "status": "success",
         "video": {
-            "url": "/api/hero-video/active",
-            "filename": video.get("original_filename") or video.get("filename"),
+            "source_type": source_type,
+            "url": url,
+            "filename": video.get("title") or video.get("original_filename") or video.get("filename") or "Active Video",
             "uploadDate": video.get("uploaded_at"),
             "thumbnailUrl": thumbnail_url
         }
