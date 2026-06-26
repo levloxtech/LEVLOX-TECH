@@ -188,6 +188,12 @@ export default function Footer() {
           transition: color 0.2s ease;
         }
         .contact-item a:hover { color: #6b21e8; }
+        .contact-item a:hover .icon-box {
+          background: #6b21e8;
+          color: #ffffff;
+          border-color: #6b21e8;
+          transition: all 0.2s ease;
+        }
 
         /* Social Links */
         .social-links {
@@ -416,12 +422,20 @@ export default function Footer() {
             <div className="info-group">
               <h4>Headquarters</h4>
               <div className="contact-item">
-                <div className="icon-box">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                </div>
-                <span style={{ lineHeight: 1.5 }}>
-                  L-2-1754-A, 120 feet road,<br />Anna Nagar, Trichy, Tamil Nadu 620026
-                </span>
+                <a
+                  href="https://www.google.com/maps/place/10%C2%B044'04.1%22N+78%C2%B045'25.6%22E/@10.7344606,78.7545449,17z/data=!3m1!4b1!4m4!3m3!8m2!3d10.7344606!4d78.7571198?hl=en&entry=ttu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'flex-start', gap: '16px' }}
+                >
+                  <div className="icon-box" style={{ flexShrink: 0 }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  </div>
+                  <span style={{ lineHeight: 1.5 }}>
+                    L-2-1754-A, 120 feet road,<br />Anna Nagar, Trichy, Tamil Nadu 620026
+                    <span style={{ display: 'block', fontSize: '11px', color: '#6b21e8', fontWeight: 700, marginTop: '4px' }}>View on Google Maps →</span>
+                  </span>
+                </a>
               </div>
 
               <div className="social-links">
