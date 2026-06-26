@@ -402,13 +402,15 @@ def upload_lead_resume(lead_id):
     if file.filename == "":
         return jsonify({"status": "error", "message": "Empty file name"}), 400
 
-    if not allowed_file(file.filename):
-        return jsonify({"status": "error", "message": "Invalid file type. Allowed: PDF, DOC, DOCX"}), 400
-
     try:
         from utils.file_storage import save_file_to_gridfs
         try:
             gridfs_res = save_file_to_gridfs(file, category="resume")
+        except ValueError as val_err:
+            return jsonify({
+                "status": "error",
+                "message": str(val_err)
+            }), 400
         except Exception as e:
             return jsonify({
                 "status": "error",
@@ -420,10 +422,11 @@ def upload_lead_resume(lead_id):
         resume_info = {
             "file_id": gridfs_res["file_id"],
             "filename": gridfs_res["filename"],
+            "original_filename": gridfs_res["original_filename"],
             "content_type": gridfs_res["content_type"],
-            "size": gridfs_res["size"],
+            "file_size": gridfs_res["size"],
             "status": "Pending",  # Store status of resume as requested: Pending/Approved/Rejected
-            "uploadedAt": now_str
+            "uploaded_at": now_str
         }
 
         # Update Lead Object

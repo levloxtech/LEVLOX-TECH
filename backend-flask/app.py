@@ -18,6 +18,7 @@ from routes.careers import careers_bp
 from routes.admin import admin_bp
 from routes.certificates import certificates_bp
 from routes.results import results_bp
+from routes.upload_settings import upload_settings_bp
 
 def create_app():
     """Application factory function."""
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(certificates_bp)
     app.register_blueprint(results_bp)
+    app.register_blueprint(upload_settings_bp)
     
     # Test route: GET /
     @app.route("/", methods=["GET"])

@@ -46,9 +46,9 @@ export default function Hero() {
         }
         
         /* Mobile Layout - Brought back the 3rem big font! */
-        .hero-heading { order: 1; font-size: 3rem; font-weight: 900; color: #0f172a; line-height: 1.15; margin: 0; letter-spacing: -1px; }
+        .hero-heading { order: 1; font-size: 3.25rem; font-weight: 900; color: #0f172a; line-height: 1.15; margin: 0; letter-spacing: -1px; }
         .hero-video-wrapper { order: 2; width: 100%; margin: 10px 0; }
-        .hero-subheading { order: 3; font-size: 1.15rem; color: #475569; line-height: 1.6; margin: 0; }
+        .hero-subheading { order: 3; font-size: 1.22rem; color: #475569; line-height: 1.6; margin: 0; }
         .hero-cta-wrapper { order: 4; margin-top: 5px; margin-bottom: 10px; }
         
         .hero-video-card {
@@ -61,115 +61,115 @@ export default function Hero() {
            cursor: pointer;
            background: #000;
            border: 1px solid rgba(107, 33, 232, 0.15);
-        }
-        
-        .hero-video-card img {
-           width: 100%;
-           height: 100%;
-           object-fit: cover;
-           opacity: 0.85;
-           transition: opacity 0.3s ease, transform 0.5s ease;
-        }
-        
-        .hero-video-card:hover img { 
-            opacity: 0.6; 
-            transform: scale(1.03);
-        }
+         }
+         
+         .hero-video-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+            transition: opacity 0.3s ease, transform 0.5s ease;
+         }
+         
+         .hero-video-card:hover img { 
+             opacity: 0.6; 
+             transform: scale(1.03);
+         }
 
-        .play-button-overlay {
-           position: absolute;
-           top: 50%;
-           left: 50%;
-           transform: translate(-50%, -50%);
-           width: 70px;
-           height: 70px;
-           background: #6b21e8;
-           border-radius: 50%;
-           display: flex;
-           align-items: center;
-           justify-content: center;
-           color: white;
-           font-size: 24px;
-           box-shadow: 0 10px 25px rgba(107, 33, 232, 0.5);
-           transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        .hero-video-card:hover .play-button-overlay {
-           transform: translate(-50%, -50%) scale(1.15);
-        }
-
-        /* Desktop Layout Override */
-        @media (min-width: 992px) {
-          .hero-container {
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr; 
-            grid-template-rows: auto auto auto;
+         .play-button-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: #6b21e8;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
-            gap: 16px 50px;
-          }
-          /* BROUGHT BACK THE MASSIVE 4.5rem DESKTOP FONT! */
-          .hero-heading { grid-column: 1; grid-row: 1; align-self: end; font-size: 4.5rem; line-height: 1.1; }
-          .hero-subheading { grid-column: 1; grid-row: 2; font-size: 1.25rem; max-width: 90%; }
-          .hero-cta-wrapper { grid-column: 1; grid-row: 3; align-self: start; margin-top: 10px; margin-bottom: 20px; }
-          .hero-video-wrapper { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
-        }
-      `}</style>
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 10px 25px rgba(107, 33, 232, 0.5);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+         }
+         
+         .hero-video-card:hover .play-button-overlay {
+            transform: translate(-50%, -50%) scale(1.15);
+         }
 
-      <div className="hero-container">
-        
-        {/* 1. Heading */}
-        <h1 className="hero-heading">
-          Land Your First Tech Job In <span style={{ color: '#6b21e8', whiteSpace: 'nowrap' }}>90 Days</span>
-        </h1>
+         /* Desktop Layout Override */
+         @media (min-width: 992px) {
+           .hero-container {
+             display: grid;
+             grid-template-columns: 1fr 1fr; 
+             grid-template-rows: auto auto auto;
+             align-items: center;
+             gap: 16px 50px;
+           }
+           /* BROUGHT BACK THE MASSIVE 4.5rem DESKTOP FONT! */
+           .hero-heading { grid-column: 1; grid-row: 1; align-self: end; font-size: 4.9rem; line-height: 1.1; }
+           .hero-subheading { grid-column: 1; grid-row: 2; font-size: 1.32rem; max-width: 90%; }
+           .hero-cta-wrapper { grid-column: 1; grid-row: 3; align-self: start; margin-top: 10px; margin-bottom: 20px; }
+           .hero-video-wrapper { grid-column: 2; grid-row: 1 / span 3; align-self: center; }
+         }
+       `}</style>
 
-        {/* 2. Video Thumbnail */}
-        <div className="hero-video-wrapper">
-          <div className="hero-video-card" onClick={() => setIsPlaying(true)}>
-            <img 
-                src="/brand_story_thumb.png" 
-                alt="Levlox Brand Story" 
-                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
-            />
-            
-            {/* <div style={{ position: 'absolute', top: '16px', left: '16px', background: '#6b21e8', color: '#fff', padding: '6px 14px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: '900', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-              ▶ BRAND STORY
-            </div> */}
-            
-            {/* <div className="play-button-overlay">
-              <span style={{ marginLeft: '4px' }}>▶</span>
-            </div> */}
-          </div>
-        </div>
+       <div className="hero-container">
+         
+         {/* 1. Heading */}
+         <h1 className="hero-heading">
+           Land Your First Tech Job In <span style={{ color: '#6b21e8', whiteSpace: 'nowrap' }}>90 Days</span>
+         </h1>
 
-        {/* 3. Subheading */}
-        <p className="hero-subheading">
-          Learn in-demand skills, build practical experience, master interviews, and follow a structured roadmap designed to make you interview ready in 90 days.
-        </p>
+         {/* 2. Video Thumbnail */}
+         <div className="hero-video-wrapper">
+           <div className="hero-video-card" onClick={() => setIsPlaying(true)}>
+             <img 
+                 src="/brand_story_thumb.png" 
+                 alt="Levlox Brand Story" 
+                 onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
+             />
+             
+             {/* <div style={{ position: 'absolute', top: '16px', left: '16px', background: '#6b21e8', color: '#fff', padding: '6px 14px', borderRadius: '50px', fontSize: '0.75rem', fontWeight: '900', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+               ▶ BRAND STORY
+             </div> */}
+             
+             {/* <div className="play-button-overlay">
+               <span style={{ marginLeft: '4px' }}>▶</span>
+             </div> */}
+           </div>
+         </div>
 
-        {/* 4. CTA Button */}
-        <div className="hero-cta-wrapper">
-          <button 
-            onClick={scrollToPathways} 
-            style={{
-              background: '#6b21e8',
-              color: '#fff',
-              border: 'none',
-              padding: '16px 32px',
-              borderRadius: '8px',
-              fontSize: '1.05rem',
-              fontWeight: '800',
-              cursor: 'pointer',
-              boxShadow: '0 10px 20px -5px rgba(107, 33, 232, 0.4)',
-              transition: 'background 0.2s',
-              width: '100%',
-              maxWidth: '350px'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#581c87'}
-            onMouseLeave={(e) => e.currentTarget.style.background = '#6b21e8'}
-          >
-            Get Your Custom Company Pathway
-          </button>
-        </div>
+         {/* 3. Subheading */}
+         <p className="hero-subheading">
+           Learn in-demand skills, build practical experience, master interviews, and follow a structured roadmap designed to make you interview ready in 90 days.
+         </p>
+
+         {/* 4. CTA Button */}
+         <div className="hero-cta-wrapper">
+           <button 
+             onClick={scrollToPathways} 
+             style={{
+               background: '#6b21e8',
+               color: '#fff',
+               border: 'none',
+               padding: '18px 36px',
+               borderRadius: '8px',
+               fontSize: '1.12rem',
+               fontWeight: '800',
+               cursor: 'pointer',
+               boxShadow: '0 10px 20px -5px rgba(107, 33, 232, 0.4)',
+               transition: 'background 0.2s',
+               width: '100%',
+               maxWidth: '380px'
+             }}
+             onMouseEnter={(e) => e.currentTarget.style.background = '#581c87'}
+             onMouseLeave={(e) => e.currentTarget.style.background = '#6b21e8'}
+           >
+             Get Your Custom Company Pathway
+           </button>
+         </div>
 
       </div>
 

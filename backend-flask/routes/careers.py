@@ -40,18 +40,14 @@ def upload_resume():
             "message": "Selected file is empty."
         }), 400
 
-    if not allowed_file(file.filename):
-        return jsonify({
-            "status": "error",
-            "message": "Invalid file type. Only PDF, DOC, and DOCX are allowed."
-        }), 400
-
-    # Ensure uploads directory exists (retained for backward compatibility/temp logs if needed, but not saving file locally)
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
     from utils.file_storage import save_file_to_gridfs
     try:
         gridfs_res = save_file_to_gridfs(file, category="resume")
+    except ValueError as val_err:
+        return jsonify({
+            "status": "error",
+            "message": str(val_err)
+        }), 400
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -63,10 +59,11 @@ def upload_resume():
     resume_info = {
         "file_id": gridfs_res["file_id"],
         "filename": gridfs_res["filename"],
+        "original_filename": gridfs_res["original_filename"],
         "content_type": gridfs_res["content_type"],
-        "size": gridfs_res["size"],
+        "file_size": gridfs_res["size"],
         "status": "Pending",
-        "uploadedAt": datetime.utcnow().isoformat()
+        "uploaded_at": datetime.utcnow().isoformat()
     }
 
     # Store resume entry details in database

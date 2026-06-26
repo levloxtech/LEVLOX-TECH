@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Save, Server, Shield, User, Mail, Phone, 
   Briefcase, Building, MapPin, AlignLeft, 
-  Upload, Trash2, Key, Info, CheckCircle 
+  Upload, Trash2, Key, Info, CheckCircle,
+  Film, FileText, Image, Award
 } from 'lucide-react';
 
 const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
@@ -29,8 +30,23 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     confirmPassword: ''
   });
 
+  // Upload limits state
+  const [uploadSettings, setUploadSettings] = useState({
+    hero_video: { max_size_mb: 100, allowed_extensions: ['mp4', 'webm', 'mov'] },
+    resume: { max_size_mb: 3, allowed_extensions: ['pdf', 'doc', 'docx'] },
+    profile_image: { max_size_mb: 2, allowed_extensions: ['jpg', 'jpeg', 'png', 'webp'] },
+    certificate: { max_size_mb: 5, allowed_extensions: ['pdf', 'png', 'jpg'] }
+  });
+
+  // Hero Video upload state
+  const [activeHeroVideo, setActiveHeroVideo] = useState(null);
+  const [selectedHeroFile, setSelectedHeroFile] = useState(null);
+  const [heroVideoProgress, setHeroVideoProgress] = useState(null);
+  const [heroVideoError, setHeroVideoError] = useState('');
+  const [heroVideoSuccess, setHeroVideoSuccess] = useState('');
+
   // UI state
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'system'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'system' | 'uploads'
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -40,7 +56,11 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
   useEffect(() => {
     fetchProfile();
-  }, [apiUrl]);
+    if (token) {
+      fetchUploadSettings();
+      fetchActiveHeroVideo();
+    }
+  }, [apiUrl, token]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -71,6 +91,34 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     }
   };
 
+  const fetchUploadSettings = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/upload-settings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setUploadSettings(data.settings);
+      }
+    } catch (err) {
+      console.error('Error fetching upload settings:', err);
+    }
+  };
+
+  const fetchActiveHeroVideo = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/hero-video/active/metadata`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setActiveHeroVideo(data.video);
+      }
+    } catch (err) {
+      console.error('Error fetching active hero video metadata:', err);
+    }
+  };
+
   const handleSystemSubmit = (e) => {
     e.preventDefault();
     localStorage.setItem('crm_api_url', urlInput);
@@ -86,17 +134,18 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      showToast('File size must be less than 10MB', 'error');
+    const limitMb = uploadSettings.profile_image?.max_size_mb || 2;
+    // Validate size
+    if (file.size > limitMb * 1024 * 1024) {
+      showToast(`File size must be less than ${limitMb}MB`, 'error');
       return;
     }
 
     // Validate extension
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    const allowedExtensions = uploadSettings.profile_image?.allowed_extensions || ['jpg', 'jpeg', 'png', 'webp'];
     const extension = file.name.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(extension)) {
-      showToast('Only jpg, jpeg, png, and webp images are allowed', 'error');
+      showToast(`Only ${allowedExtensions.join(', ')} images are allowed`, 'error');
       return;
     }
 
@@ -261,11 +310,123 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
     showToast('Changes discarded.');
   };
 
-  // Calculate completion percentage
+  // Upload limits settings form submit
+  const handleLimitsSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/admin/upload-settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(uploadSettings)
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        showToast('Upload limits saved successfully!');
+      } else {
+        showToast(data.message || 'Failed to save limits', 'error');
+      }
+    } catch (err) {
+      showToast('Error updating upload settings', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Hero Video File Select
+  const handleHeroFileSelect = (e) => {
+    const file = e.target.files[0];
+    setHeroVideoError('');
+    setHeroVideoSuccess('');
+    
+    if (!file) return;
+
+    const limitMb = uploadSettings.hero_video?.max_size_mb || 100;
+    // Validate size
+    if (file.size > limitMb * 1024 * 1024) {
+      setHeroVideoError(`Video must be less than ${limitMb}MB.`);
+      return;
+    }
+
+    // Validate extension
+    const allowedExtensions = uploadSettings.hero_video?.allowed_extensions || ['mp4', 'webm', 'mov'];
+    const extension = file.name.split('.').pop().toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      setHeroVideoError(`Only ${allowedExtensions.join(', ').toUpperCase()} files are allowed.`);
+      return;
+    }
+
+    // Check for empty files
+    if (file.size === 0) {
+      setHeroVideoError("Selected file is empty.");
+      return;
+    }
+
+    setSelectedHeroFile(file);
+  };
+
+  // Hero Video Upload
+  const handleHeroUpload = () => {
+    if (!selectedHeroFile) return;
+
+    setHeroVideoError('');
+    setHeroVideoSuccess('');
+    setHeroVideoProgress(0);
+
+    const formData = new FormData();
+    formData.append('hero_video', selectedHeroFile);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${apiUrl}/api/admin/hero-video`, true);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setHeroVideoProgress(percent);
+      }
+    };
+
+    xhr.onload = () => {
+      setHeroVideoProgress(null);
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && data.status === 'success') {
+          setHeroVideoSuccess('Hero Video uploaded and activated successfully!');
+          setActiveHeroVideo(data.video);
+          setSelectedHeroFile(null);
+          showToast('Hero Video updated!');
+        } else {
+          setHeroVideoError(data.message || 'Upload failed');
+        }
+      } catch (e) {
+        setHeroVideoError('Response error from server');
+      }
+    };
+
+    xhr.onerror = () => {
+      setHeroVideoProgress(null);
+      setHeroVideoError('Network communication failed during video upload');
+    };
+
+    xhr.send(formData);
+  };
+
   const calculateCompletion = () => {
     const fields = ['name', 'phone', 'role', 'company', 'location', 'bio', 'profileImage'];
     const filledFields = fields.filter(f => profile[f] && String(profile[f]).trim() !== '');
     return Math.round((filledFields.length / fields.length) * 100);
+  };
+
+  const formatBytes = (bytes) => {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const completionPercent = calculateCompletion();
@@ -300,6 +461,14 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
             }`}
           >
             Admin Profile
+          </button>
+          <button 
+            onClick={() => setActiveTab('uploads')}
+            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+              activeTab === 'uploads' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
+            }`}
+          >
+            File Uploads
           </button>
           <button 
             onClick={() => setActiveTab('system')}
@@ -639,9 +808,312 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
         </div>
 
+      ) : activeTab === 'uploads' ? (
+        
+        <div className="space-y-8 text-left animate-fade-in">
+          
+          {/* UPLOAD LIMITS SETTINGS */}
+          <form onSubmit={handleLimitsSubmit} className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-50 pb-3">
+              <div className="flex items-center gap-2 text-gray-900 font-extrabold text-sm">
+                <Shield size={16} />
+                <span>File Upload Limits Settings</span>
+              </div>
+              <p className="text-[10px] text-gray-400">Configure global size limits and extensions</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Hero Video */}
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-3 border border-gray-100 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                    <Film size={16} className="text-[#6b21e8]" />
+                    <span>Hero Video Configuration</span>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="space-y-1 w-28">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Limit (MB)</label>
+                      <input 
+                        type="number"
+                        min="1"
+                        value={uploadSettings.hero_video?.max_size_mb || 100}
+                        onChange={(e) => setUploadSettings({
+                          ...uploadSettings,
+                          hero_video: { ...uploadSettings.hero_video, max_size_mb: parseInt(e.target.value) || 1 }
+                        })}
+                        className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(uploadSettings.hero_video?.allowed_extensions || ['mp4', 'webm', 'mov']).map(ext => (
+                          <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resume Limit */}
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-3 border border-gray-100 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                    <FileText size={16} className="text-[#6b21e8]" />
+                    <span>Student Resumes</span>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="space-y-1 w-28">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Limit (MB)</label>
+                      <input 
+                        type="number"
+                        min="1"
+                        value={uploadSettings.resume?.max_size_mb || 3}
+                        onChange={(e) => setUploadSettings({
+                          ...uploadSettings,
+                          resume: { ...uploadSettings.resume, max_size_mb: parseInt(e.target.value) || 1 }
+                        })}
+                        className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(uploadSettings.resume?.allowed_extensions || ['pdf', 'doc', 'docx']).map(ext => (
+                          <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Image Limit */}
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-3 border border-gray-100 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                    <Image size={16} className="text-[#6b21e8]" />
+                    <span>Admin Profile Images</span>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="space-y-1 w-28">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Limit (MB)</label>
+                      <input 
+                        type="number"
+                        min="1"
+                        value={uploadSettings.profile_image?.max_size_mb || 2}
+                        onChange={(e) => setUploadSettings({
+                          ...uploadSettings,
+                          profile_image: { ...uploadSettings.profile_image, max_size_mb: parseInt(e.target.value) || 1 }
+                        })}
+                        className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(uploadSettings.profile_image?.allowed_extensions || ['jpg', 'jpeg', 'png', 'webp']).map(ext => (
+                          <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certificate Limit */}
+              <div className="p-5 bg-gray-50 rounded-2xl space-y-3 border border-gray-100 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                    <Award size={16} className="text-[#6b21e8]" />
+                    <span>Certificates</span>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="space-y-1 w-28">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Limit (MB)</label>
+                      <input 
+                        type="number"
+                        min="1"
+                        value={uploadSettings.certificate?.max_size_mb || 5}
+                        onChange={(e) => setUploadSettings({
+                          ...uploadSettings,
+                          certificate: { ...uploadSettings.certificate, max_size_mb: parseInt(e.target.value) || 1 }
+                        })}
+                        className="w-full bg-white border border-gray-150 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-zinc-300 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-[9px] font-extrabold text-gray-400 uppercase">Allowed Extensions</label>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(uploadSettings.certificate?.allowed_extensions || ['pdf', 'png', 'jpg']).map(ext => (
+                          <span key={ext} className="bg-[#6b21e8]/10 text-[#6b21e8] font-bold text-[9px] px-2 py-0.5 rounded uppercase">{ext}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-gray-50">
+              <button 
+                type="submit"
+                disabled={submitting}
+                className="bg-black text-white hover:bg-zinc-800 px-6 py-2.5 rounded-xl text-xs font-semibold cursor-pointer shadow-sm"
+              >
+                Save Limits Configuration
+              </button>
+            </div>
+          </form>
+
+          {/* HERO VIDEO MANAGER */}
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="border-b border-gray-50 pb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-900 font-extrabold text-sm">
+                <Film size={16} />
+                <span>Active Hero Video Manager</span>
+              </div>
+              <span className="text-[10px] text-zinc-500 bg-zinc-100 px-2.5 py-0.5 rounded-full font-bold">Only 1 active video permitted</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              
+              {/* CURRENT ACTIVE PREVIEW */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Current Active Video</h4>
+                
+                {activeHeroVideo ? (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl overflow-hidden border border-gray-150 bg-black aspect-video shadow-md relative">
+                      <video 
+                        key={activeHeroVideo.file_id}
+                        controls 
+                        className="w-full h-full object-contain"
+                        preload="metadata"
+                      >
+                        <source src={`${apiUrl}/api/hero-video/active`} type={activeHeroVideo.content_type || 'video/mp4'} />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Original Filename:</span>
+                        <span className="font-semibold text-gray-900 max-w-[200px] truncate">{activeHeroVideo.original_filename}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">File Size:</span>
+                        <span className="font-semibold text-gray-900">{formatBytes(activeHeroVideo.size)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 font-medium">Upload Date:</span>
+                        <span className="font-semibold text-gray-900">
+                          {new Date(activeHeroVideo.uploaded_at).toLocaleDateString(undefined, { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl py-12 flex flex-col items-center justify-center text-center p-4">
+                    <Film className="w-12 h-12 text-gray-300 mb-2" />
+                    <p className="text-xs font-bold text-gray-400">No active Hero Video currently uploaded.</p>
+                    <p className="text-[10px] text-gray-400 max-w-xs mt-1">Upload a video on the right to set the home page hero video.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* UPLOAD NEW VIDEO */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide">Upload & Replace Active Video</h4>
+                
+                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-4 flex flex-col justify-center min-h-[160px] relative bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                  <input 
+                    type="file" 
+                    id="heroVideoInput"
+                    accept="video/mp4,video/webm,video/mov"
+                    onChange={handleHeroFileSelect} 
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                  <div className="flex flex-col items-center justify-center">
+                    <Upload className="w-8 h-8 text-[#6b21e8] mb-2" />
+                    {selectedHeroFile ? (
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-zinc-900 max-w-xs truncate">{selectedHeroFile.name}</p>
+                        <p className="text-[10px] text-gray-500 font-bold">{formatBytes(selectedHeroFile.size)}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-gray-600">Drag or click to choose video file</p>
+                        <p className="text-[10px] text-gray-400">MP4, WebM or MOV up to {uploadSettings.hero_video?.max_size_mb || 100}MB</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {heroVideoProgress !== null && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-bold text-[#6b21e8] uppercase">
+                      <span>Uploading Video...</span>
+                      <span>{heroVideoProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-[#6b21e8] h-full transition-all duration-200"
+                        style={{ width: `${heroVideoProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {heroVideoError && (
+                  <div className="bg-red-50 text-red-600 border border-red-100 text-xs px-4 py-2.5 rounded-xl font-medium">
+                    {heroVideoError}
+                  </div>
+                )}
+
+                {heroVideoSuccess && (
+                  <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs px-4 py-2.5 rounded-xl font-medium">
+                    {heroVideoSuccess}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  {selectedHeroFile && (
+                    <button 
+                      onClick={() => setSelectedHeroFile(null)}
+                      className="flex-1 bg-gray-100 hover:bg-gray-250 text-gray-700 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleHeroUpload}
+                    disabled={!selectedHeroFile || heroVideoProgress !== null}
+                    className="flex-1 bg-black text-white hover:bg-zinc-800 disabled:opacity-40 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    Upload and Set Active
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
       ) : (
         
-        <form onSubmit={handleSystemSubmit} className="glass-card p-6 bg-white border border-gray-100 rounded-3xl space-y-6 text-left">
+        <form onSubmit={handleSystemSubmit} className="glass-card p-6 bg-white border border-gray-100 rounded-3xl space-y-6 text-left animate-fade-in">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-gray-900 font-semibold text-sm">
               <Server size={18} />
