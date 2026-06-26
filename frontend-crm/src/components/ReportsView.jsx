@@ -71,6 +71,10 @@ function getDateBounds(preset) {
 }
 
 const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
+  const [mounted, setMounted] = useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ── Filter State ──────────────────────────────────────────────────────────
   const [datePreset, setDatePreset]     = useState('all');
@@ -540,16 +544,18 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
           <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2">
             <BarChart2 size={14} /> Lead Status Distribution
           </h4>
-          <div className="h-64 text-xs font-semibold">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" stroke="#9ca3af" fontSize={10} tickLine={false} />
-                <YAxis stroke="#9ca3af" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px' }} />
-                <Bar dataKey="count" fill="#0d0d0f" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-64 text-xs font-semibold relative w-full">
+            {mounted && (
+              <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                <BarChart data={statusChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#9ca3af" fontSize={10} tickLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px' }} />
+                  <Bar dataKey="count" fill="#0d0d0f" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -561,17 +567,19 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
           <div className="h-64 flex items-center justify-center gap-6">
             {sourceChartData.length > 0 ? (
               <>
-                <div className="w-1/2 h-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={sourceChartData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="value">
-                        {sourceChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <div className="w-1/2 h-full relative">
+                  {mounted && (
+                    <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                      <PieChart>
+                        <Pie data={sourceChartData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={4} dataKey="value">
+                          {sourceChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #f3f4f6', borderRadius: '12px' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
                 <div className="w-1/2 flex flex-col gap-2">
                   {sourceChartData.map((item, idx) => (
@@ -594,9 +602,9 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
           <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2">
             <LineIcon size={14} /> Leads Progression (Daily)
           </h4>
-          <div className="h-64 text-xs font-semibold">
-            {dailyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 text-xs font-semibold relative w-full">
+            {mounted && dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                 <LineChart data={dailyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                   <XAxis dataKey="date" stroke="#9ca3af" fontSize={10} tickLine={false} />
@@ -605,9 +613,9 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
                   <Line type="monotone" dataKey="count" stroke="#0d0d0f" strokeWidth={2.5} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
-            ) : (
+            ) : dailyData.length === 0 ? (
               <p className="text-gray-400 text-xs italic flex items-center justify-center h-full">No daily records logged yet</p>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -616,9 +624,9 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
           <h4 className="font-bold text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2">
             <Activity size={14} /> Cumulative Leads Growth
           </h4>
-          <div className="h-64 text-xs font-semibold">
-            {cumulativeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 text-xs font-semibold relative w-full">
+            {mounted && cumulativeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minHeight={250}>
                 <AreaChart data={cumulativeData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
@@ -633,9 +641,9 @@ const ReportsView = ({ apiUrl, token, leads = [], adminProfile, user }) => {
                   <Area type="monotone" dataKey="Cumulative" stroke="#0d0d0f" fillOpacity={1} fill="url(#colorCumulative)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
-            ) : (
+            ) : cumulativeData.length === 0 ? (
               <p className="text-gray-400 text-xs italic flex items-center justify-center h-full">No cumulative data computed</p>
-            )}
+            ) : null}
           </div>
         </div>
 
