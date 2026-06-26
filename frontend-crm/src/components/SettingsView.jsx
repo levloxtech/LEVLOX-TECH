@@ -6,8 +6,16 @@ import {
   Film, FileText, Image, Award
 } from 'lucide-react';
 
-const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
+const SettingsView = ({ apiUrl, token, onProfileUpdate, adminProfile, user }) => {
   const [urlInput, setUrlInput] = useState(apiUrl);
+  
+  const roleLower = (profile?.role || adminProfile?.role || user?.role || '').toLowerCase().replace(/\s+/g, '');
+  const isDeveloper = roleLower === 'superadmin' || roleLower === 'developer';
+
+  const handleResetOverride = () => {
+    localStorage.removeItem('crm_api_url');
+    window.location.reload();
+  };
   
   // Profile State
   const [profile, setProfile] = useState({
@@ -57,7 +65,7 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
   const [thumbnailSuccess, setThumbnailSuccess] = useState('');
 
   // UI state
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'system' | 'uploads'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'uploads' | 'developer'
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -662,14 +670,16 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
           >
             File Uploads
           </button>
-          <button 
-            onClick={() => setActiveTab('system')}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-              activeTab === 'system' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
-            }`}
-          >
-            System & Endpoints
-          </button>
+          {isDeveloper && (
+            <button 
+              onClick={() => setActiveTab('developer')}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === 'developer' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'
+              }`}
+            >
+              Developer Settings
+            </button>
+          )}
         </div>
       </div>
 
@@ -1556,18 +1566,27 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
 
         </div>
 
-      ) : (
+      ) : isDeveloper && activeTab === 'developer' ? (
         
         <form onSubmit={handleSystemSubmit} className="glass-card p-6 bg-white border border-gray-100 rounded-3xl space-y-6 text-left animate-fade-in">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-gray-900 font-semibold text-sm">
               <Server size={18} />
-              <span>Backend Integration</span>
+              <span>Developer Settings - API Override</span>
             </div>
             
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-amber-800 text-xs leading-relaxed space-y-1">
+              <p className="font-bold flex items-center gap-1.5">
+                <Shield size={14} /> Local Developer Override
+              </p>
+              <p>
+                Changing the API URL here will only affect this browser session (saved locally in your browser's localStorage). It will <strong>NOT</strong> change the production backend endpoints or configuration in <code>.env</code>.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">
-                API Base URL
+                API Base URL Override
               </label>
               <input 
                 type="url" 
@@ -1578,26 +1597,29 @@ const SettingsView = ({ apiUrl, token, onProfileUpdate }) => {
                 required
               />
               <p className="text-[10px] text-gray-400">
-                The endpoint address of your running Flask backend. If offline, the client uses fallback mock data.
+                Current active endpoint override. If not set, defaults to the production backend config.
               </p>
             </div>
           </div>
 
           <div className="border-t border-gray-100 pt-6 flex justify-between items-center">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <Shield size={14} />
-              <span>Connection Active</span>
-            </div>
+            <button 
+              type="button"
+              onClick={handleResetOverride}
+              className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all px-4 py-2 rounded-full text-xs font-semibold cursor-pointer"
+            >
+              Reset to Environment Default
+            </button>
             <button 
               type="submit"
               className="flex items-center gap-1.5 bg-black text-white hover:bg-gray-800 transition-all px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer shadow-sm"
             >
-              <Save size={14} /> Save Configuration
+              <Save size={14} /> Save Override
             </button>
           </div>
         </form>
 
-      )}
+      ) : null}
 
     </div>
   );

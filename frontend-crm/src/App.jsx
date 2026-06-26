@@ -25,7 +25,8 @@ function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [apiUrl, setApiUrl] = useState(() => {
-    const envUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+    const localUrl = localStorage.getItem('crm_api_url');
+    const envUrl = localUrl || import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
     return envUrl.endsWith('/api') ? envUrl.slice(0, -4) : envUrl;
   });
   const [loading, setLoading] = useState(false);
@@ -237,6 +238,8 @@ function App() {
           <SettingsView 
             apiUrl={apiUrl} 
             token={token}
+            adminProfile={adminProfile}
+            user={user}
             onProfileUpdate={(updatedProfile, newToken) => {
               setAdminProfile(updatedProfile);
               if (newToken) {
