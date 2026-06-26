@@ -173,7 +173,7 @@ const CertificateManagementView = ({ apiUrl, token, adminProfile, user }) => {
   // Filter states
   const [statusFilter, setStatusFilter] = useState('');
   const [recentFilter, setRecentFilter] = useState(false);
-  const [dateFilter, setDateFilter] = useState({ filter: 'month', fromUTC: '', to_date: '' });
+  const [dateFilter, setDateFilter] = useState({ filter: 'today', fromUTC: '', to_date: '' });
 
   const [toast, setToast]               = useState(null);
   const printRef = useRef(null);

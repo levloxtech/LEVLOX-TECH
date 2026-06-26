@@ -9,7 +9,7 @@ const ContactsView = ({ apiUrl, token, adminProfile, user }) => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [dateFilter, setDateFilter] = useState({ filter: 'month', fromUTC: '', to_date: '' });
+  const [dateFilter, setDateFilter] = useState({ filter: 'today', fromUTC: '', to_date: '' });
 
   const fetchContacts = async (range = dateFilter) => {
     if (!token) return;

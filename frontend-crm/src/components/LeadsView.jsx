@@ -38,7 +38,7 @@ const LeadsView = ({ leads: initialLeads = [], onRefresh, loading: globalLoading
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState({ filter: 'month', from: '', to: '' });
+  const [dateFilter, setDateFilter] = useState({ filter: 'today', from: '', to: '' });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);

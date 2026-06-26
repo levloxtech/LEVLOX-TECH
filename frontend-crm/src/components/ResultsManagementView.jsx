@@ -8,7 +8,7 @@ const ResultsManagementView = ({ apiUrl, token, adminProfile, user }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [dateFilter, setDateFilter] = useState({ filter: 'month', fromUTC: '', to_date: '' });
+  const [dateFilter, setDateFilter] = useState({ filter: 'today', fromUTC: '', to_date: '' });
 
   // Form states
   const [form, setForm] = useState({

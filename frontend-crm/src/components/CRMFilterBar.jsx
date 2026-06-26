@@ -54,7 +54,7 @@ const FILTER_LABELS = {
   custom:'Custom Range',
 };
 
-export default function CRMFilterBar({ onChange, initialPreset = 'month' }) {
+export default function CRMFilterBar({ onChange, initialPreset = 'today' }) {
   const [activeFilter, setActiveFilter] = useState(initialPreset);
   const [customFrom, setCustomFrom]     = useState(fmtLocal(new Date()));
   const [customTo, setCustomTo]         = useState(fmtLocal(new Date()));
