@@ -93,31 +93,6 @@ export default function Hero() {
           gap: 24px;
         }
 
-        /* ─── TYPOGRAPHY & DESIGN SYSTEM ─── */
-        .hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          align-self: flex-start;
-          background: rgba(107, 33, 232, 0.08);
-          border: 1px solid rgba(107, 33, 232, 0.16);
-          color: #6b21e8;
-          padding: 8px 16px;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 700;
-          letter-spacing: 0.02em;
-          text-transform: uppercase;
-          margin-bottom: 4px;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
-          animation: pulseBadge 3s infinite ease-in-out;
-        }
-
-        @keyframes pulseBadge {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-2px); }
-        }
-        
         .hero-heading { 
           order: 1; 
           font-size: 2.75rem; 
@@ -359,22 +334,16 @@ export default function Hero() {
              display: grid;
              /* Make the right video column 10-15% wider than the text column */
              grid-template-columns: 1fr 1.25fr; 
-             grid-template-rows: auto auto auto auto;
+             grid-template-rows: auto auto auto;
              align-items: center;
              /* Reduced column gap to pull content closer together and avoid empty spaces */
              gap: 12px 40px;
              padding: 0 40px;
            }
-           
-           .hero-badge {
-             grid-column: 1;
-             grid-row: 1;
-             margin-bottom: 0;
-           }
 
            .hero-heading { 
              grid-column: 1; 
-             grid-row: 2; 
+             grid-row: 1; 
              align-self: end; 
              font-size: 4rem; 
              line-height: 1.1; 
@@ -383,7 +352,7 @@ export default function Hero() {
            
            .hero-subheading { 
              grid-column: 1; 
-             grid-row: 3; 
+             grid-row: 2; 
              font-size: 1.18rem; 
              max-width: 95%; 
              align-self: start;
@@ -392,7 +361,7 @@ export default function Hero() {
            
            .hero-cta-wrapper { 
              grid-column: 1; 
-             grid-row: 4; 
+             grid-row: 3; 
              align-self: start; 
              margin-top: 12px; 
              margin-bottom: 0; 
@@ -400,7 +369,7 @@ export default function Hero() {
 
            .hero-video-wrapper { 
              grid-column: 2; 
-             grid-row: 1 / span 4; 
+             grid-row: 1 / span 3; 
              align-self: center; 
              margin: 0;
            }
@@ -418,11 +387,6 @@ export default function Hero() {
       `}</style>
 
       <div className="hero-container">
-        
-        {/* Top Badge */}
-        <div className="hero-badge">
-          <span>🚀 Live 90-Day Cohorts Now Open</span>
-        </div>
 
         {/* 1. Heading */}
         <h1 className="hero-heading">
