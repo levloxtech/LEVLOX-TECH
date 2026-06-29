@@ -450,6 +450,9 @@ export default function Hero() {
                       autoPlay
                       playsInline
                       onLoadedData={() => setIsLoading(false)}
+                      onCanPlay={() => setIsLoading(false)}
+                      onPlay={() => setIsLoading(false)}
+                      onPlaying={() => setIsLoading(false)}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000', border: 'none', display: 'block' }}
                   />
                 )}
