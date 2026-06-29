@@ -435,7 +435,7 @@ export default function CompanyPathways({ onDetailActive }) {
           border: 1px solid #cbd5e1;
           border-radius: 8px;
           font-size: 15px;
-          font-family: 'Inter', 'Segoe UI', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           background: #f8fafc;
           box-sizing: border-box;
           color: #0f172a;

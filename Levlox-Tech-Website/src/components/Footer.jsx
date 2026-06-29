@@ -104,7 +104,7 @@ export default function Footer() {
           background-color: #f8fafc; 
           /* Reduced top padding from 100px to 40px */
           padding: 40px 20px 40px;
-          font-family: 'Inter', 'Segoe UI', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           color: #0f172a;
           border-top: 1px solid #e2e8f0;
         }

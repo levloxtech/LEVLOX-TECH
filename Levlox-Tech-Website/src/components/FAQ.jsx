@@ -37,7 +37,7 @@ export default function FAQ() {
         .responsive-faq-section {
           padding: 40px 20px; /* Reduced from 60px */
           background-color: #fdfdfd;
-          font-family: 'Inter', 'Segoe UI', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           width: 100%;
           box-sizing: border-box;
         }

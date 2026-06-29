@@ -7,7 +7,7 @@ export default function Founder() {
         .founder-section {
           padding: 60px 0; /* Reduced from 120px */
           background-color: #ffffff;
-          font-family: 'Inter', 'Segoe UI', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           position: relative;
           overflow: hidden;
         }

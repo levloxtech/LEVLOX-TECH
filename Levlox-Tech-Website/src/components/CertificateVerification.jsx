@@ -155,7 +155,7 @@ export default function CertificateVerification() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
         }
         .verify-section *, .verify-section *::before, .verify-section *::after { box-sizing: border-box; }
 

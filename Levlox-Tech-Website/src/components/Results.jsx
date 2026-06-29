@@ -62,7 +62,7 @@ export default function Reviews() {
   };
 
   return (
-    <section id="proof" style={{ padding: '80px 0', backgroundColor: '#f8fafc', overflow: 'hidden', fontFamily: "'Inter', sans-serif" }}>
+    <section id="proof" style={{ padding: '80px 0', backgroundColor: '#f8fafc', overflow: 'hidden', fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif" }}>
       
       <style>
         {`

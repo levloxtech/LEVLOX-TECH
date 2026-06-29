@@ -61,7 +61,7 @@ export default function HowItWorks() {
         .elegant-roadmap {
           background-color: #ffffff;
           padding: 120px max(4%, 20px);
-          font-family: 'Inter', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           overflow: hidden;
         }
 

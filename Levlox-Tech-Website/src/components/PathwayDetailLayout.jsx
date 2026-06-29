@@ -142,7 +142,7 @@ export default function PathwayDetailLayout({
           background-color: #f8fafc;
           min-height: 100vh;
           padding: 80px 0 100px 0;
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, sans-serif;
           box-sizing: border-box;
           overflow-x: hidden;
         }
@@ -256,7 +256,7 @@ export default function PathwayDetailLayout({
           margin: 0;
           line-height: 1.6;
           font-weight: 500;
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, sans-serif;
         }
 
         .enroll-layout {

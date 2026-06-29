@@ -122,7 +122,7 @@ export default function Navbar({ onSelectCourse, isCoursePage, isVerifyPage, act
         }
         
         .nav-link-item {
-          font-family: 'Satoshi', 'Poppins', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           font-size: 16px;
           text-decoration: none;
           transition: color 0.2s ease;
@@ -174,7 +174,7 @@ export default function Navbar({ onSelectCourse, isCoursePage, isVerifyPage, act
         }
 
         .nav-cta-btn {
-          font-family: 'Satoshi', 'Poppins', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           background: #7c3aed; /* Adjusted to match your screenshot's vivid purple */
           color: #ffffff;
           padding: 12px 24px;
@@ -193,7 +193,7 @@ export default function Navbar({ onSelectCourse, isCoursePage, isVerifyPage, act
 
         /* ─── FLOATING CURVED MOBILE BOTTOM NAV BAR CSS ─── */
         .mobile-bottom-nav {
-          font-family: 'Satoshi', 'Poppins', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
           display: none;
           position: fixed;
           bottom: 20px;
@@ -320,7 +320,7 @@ export default function Navbar({ onSelectCourse, isCoursePage, isVerifyPage, act
         width: '100%',
         backgroundColor: '#ffffff',
         transition: 'box-shadow 0.3s ease',
-        fontFamily: "'Satoshi', 'Poppins', 'Inter', sans-serif"
+        fontFamily: "'Satoshi', 'Plus Jakarta Sans', sans-serif"
       }}>
         {/* Container spreads logo to far left, nav to far right on desktop */}
         <div className="nav-inner-container" style={{ 

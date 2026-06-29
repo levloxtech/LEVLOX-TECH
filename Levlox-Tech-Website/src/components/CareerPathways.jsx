@@ -403,7 +403,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
         .pathways-wrapper {
           padding: 50px 0;
           background-color: #fdfdfd;
-          font-family: 'Inter', 'Segoe UI', sans-serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
         }
 
         .pathways-container {
