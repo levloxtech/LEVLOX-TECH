@@ -80,7 +80,7 @@ export default function Reviews() {
             margin-bottom: 16px;
           }
           .proof-title {
-            font-family: 'Georgia', 'Times New Roman', serif; 
+            font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; 
             font-size: 2.8rem;
             font-weight: 700;
             color: #0f172a;
@@ -243,7 +243,8 @@ export default function Reviews() {
             position: relative;
           }
           .company-logo-text {
-            font-family: 'Georgia', serif; 
+            font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; 
+            letter-spacing: -0.02em;
             font-size: 1.35rem;
             font-weight: 800;
             margin-bottom: 6px;

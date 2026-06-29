@@ -41,7 +41,7 @@ function StampMark({ status, animKey }) {
         <text fontSize="11" fontWeight="700" letterSpacing="2.5" fill="currentColor">
           <textPath href={`#${id}`} startOffset="0%">{s.ring}</textPath>
         </text>
-        <text x="100" y="118" textAnchor="middle" fontSize="56" fontWeight="700" fill="currentColor" fontFamily="Georgia, serif">
+        <text x="100" y="118" textAnchor="middle" fontSize="56" fontWeight="700" fill="currentColor" fontFamily="'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif">
           {s.mark}
         </text>
       </g>
@@ -168,7 +168,7 @@ export default function CertificateVerification() {
         }
 
         .title {
-          font-family: Georgia, 'Times New Roman', serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
           font-weight: 700;
           font-size: clamp(2rem, 5vw, 2.75rem);
           color: var(--ink);

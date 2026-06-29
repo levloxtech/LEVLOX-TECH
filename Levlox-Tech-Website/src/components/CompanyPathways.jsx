@@ -291,7 +291,7 @@ export default function CompanyPathways({ onDetailActive }) {
           flex-wrap: wrap;
         }
         .headline-text {
-          font-family: 'Georgia', serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
           font-size: clamp(36px, 5vw, 56px);
           font-weight: 900;
           color: #0f172a;
@@ -415,7 +415,7 @@ export default function CompanyPathways({ onDetailActive }) {
           box-sizing: border-box;
         }
         .form-title {
-          font-family: 'Georgia', serif;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
           font-size: 24px;
           font-weight: 900;
           color: #0f172a;

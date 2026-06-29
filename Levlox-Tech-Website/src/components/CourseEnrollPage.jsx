@@ -520,7 +520,7 @@ export default function CourseEnrollPage({ course, onBack }) {
               activeLesson ? (
                 <div>
                   <h2 style={{ 
-                    fontFamily: '"Times New Roman", Times, Georgia, serif',
+                    fontFamily: "'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                     fontSize: '32px', 
                     fontWeight: '800', 
                     marginTop: '26.56px',
