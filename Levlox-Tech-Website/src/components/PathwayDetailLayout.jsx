@@ -138,11 +138,16 @@ export default function PathwayDetailLayout({
   return (
     <div ref={containerRef} className="enroll-premium-wrapper">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        .enroll-premium-wrapper, .enroll-premium-wrapper * {
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+        }
+
         .enroll-premium-wrapper {
           background-color: #f8fafc;
           min-height: 100vh;
           padding: 80px 0 100px 0;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, sans-serif;
           box-sizing: border-box;
           overflow-x: hidden;
         }
@@ -168,7 +173,7 @@ export default function PathwayDetailLayout({
           background: #7c3aed;
           border: none;
           color: #ffffff;
-          font-weight: 700;
+          font-weight: 600;
           cursor: pointer;
           font-size: 14px;
           padding: 10px 20px;
@@ -256,7 +261,6 @@ export default function PathwayDetailLayout({
           margin: 0;
           line-height: 1.6;
           font-weight: 500;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, sans-serif;
         }
 
         .enroll-layout {
@@ -377,7 +381,7 @@ export default function PathwayDetailLayout({
         .f-label {
           display: block;
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 600;
           color: #334155;
           margin-bottom: 6px;
         }
@@ -388,9 +392,14 @@ export default function PathwayDetailLayout({
           border-radius: 8px;
           background: #f8fafc;
           font-size: 14px;
-          font-family: inherit;
+          font-weight: 500;
           color: #0f172a;
           box-sizing: border-box;
+        }
+        .f-input::placeholder {
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+          color: #94a3b8 !important;
+          font-weight: 400 !important;
         }
         .f-input:focus {
           outline: none;
@@ -404,7 +413,7 @@ export default function PathwayDetailLayout({
           background-color: #0f172a;
           color: #ffffff;
           font-size: 15px;
-          font-weight: 800;
+          font-weight: 600;
           border: none;
           border-radius: 8px;
           cursor: pointer;

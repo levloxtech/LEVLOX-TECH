@@ -270,6 +270,13 @@ export default function CompanyPathways({ onDetailActive }) {
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        #pathways, #pathways *, .company-detail-wrapper, .company-detail-wrapper *,
+        .central-form-card, .central-form-card *, .brand-vertical-column, .brand-vertical-column * {
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+        }
+
         /* ─── BASE SECTION STYLES ─── */
         .pathways-section {
           background-color: #ffffff;
@@ -425,7 +432,7 @@ export default function CompanyPathways({ onDetailActive }) {
         .form-label {
           display: block;
           font-size: 14px;
-          font-weight: 700;
+          font-weight: 600;
           color: #1e293b;
           margin-bottom: 8px;
         }
@@ -435,12 +442,17 @@ export default function CompanyPathways({ onDetailActive }) {
           border: 1px solid #cbd5e1;
           border-radius: 8px;
           font-size: 15px;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
+          font-weight: 500;
           background: #f8fafc;
           box-sizing: border-box;
           color: #0f172a;
           margin-bottom: 24px;
           transition: border-color 0.2s;
+        }
+        .form-input-box::placeholder {
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+          color: #94a3b8 !important;
+          font-weight: 400 !important;
         }
         .form-input-box:focus {
           outline: none;
@@ -457,6 +469,7 @@ export default function CompanyPathways({ onDetailActive }) {
           color: #0f172a;
           margin-right: 10px;
           font-weight: 600;
+          font-family: 'Satoshi', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         }
         .form-submit-btn {
           width: 100%;
@@ -464,7 +477,7 @@ export default function CompanyPathways({ onDetailActive }) {
           background: #6b21e8;
           color: #ffffff;
           font-size: 16px;
-          font-weight: 800;
+          font-weight: 600;
           border: none;
           border-radius: 8px;
           cursor: pointer;

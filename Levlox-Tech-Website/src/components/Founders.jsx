@@ -151,7 +151,7 @@ export default function Founder() {
 
         <div className="fs-content">
           <p className="fs-paragraph">
-            Most people are taught how to learn technical skills, but very few are taught how careers actually work—how companies hire, how promotions happen, and how top performers create their own opportunities. 
+            Most people are taught how to learn technical skills, but very few are taught how careers actually work, how companies hire, how promotions happen, and how top performers create their own opportunities. 
           </p>
           
           <p className="fs-paragraph">

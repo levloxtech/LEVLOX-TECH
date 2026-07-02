@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 
 export default function Hero() {
@@ -7,6 +7,8 @@ export default function Hero() {
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [sourceType, setSourceType] = useState('upload');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     const fetchHeroVideo = async () => {
@@ -51,8 +53,19 @@ export default function Hero() {
 
   const handlePlayClick = () => {
     if (videoUrl) {
-      setIsLoading(true);
       setIsPlaying(true);
+      if (sourceType !== 'youtube' && sourceType !== 'vimeo') {
+        if (!hasLoaded) {
+          setIsLoading(true);
+        }
+        if (videoRef.current) {
+          videoRef.current.play().catch(err => {
+            console.error("Video play failed:", err);
+          });
+        }
+      } else {
+        setIsLoading(true);
+      }
     }
   };
 
@@ -82,7 +95,7 @@ export default function Hero() {
            margin-right: -50vw !important;
            box-sizing: border-box;
            overflow-x: hidden;
-        }
+         }
 
         .hero-container {
           max-width: 1280px;
@@ -158,7 +171,7 @@ export default function Hero() {
           transform: translateY(1px);
         }
 
-        /* ─── VIDEO COLUMN CONTAINER & META INFO ─── */
+        /* ─── VIDEO COLUMN CONTAINER ─── */
         .hero-video-wrapper { 
           order: 2; 
           width: 100%; 
@@ -166,31 +179,6 @@ export default function Hero() {
           display: flex;
           flex-direction: column;
           gap: 16px;
-        }
-
-        .video-meta-info {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          padding: 0 4px;
-        }
-
-        .video-meta-title {
-          font-size: 1.1rem;
-          font-weight: 800;
-          color: #0f172a;
-          margin: 0;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
-          letter-spacing: -0.01em;
-        }
-
-        .video-meta-desc {
-          font-size: 0.9rem;
-          color: #64748b;
-          margin: 0;
-          font-weight: 500;
-          font-family: 'Satoshi', 'Plus Jakarta Sans', sans-serif;
-          line-height: 1.4;
         }
         
         /* ─── PREMIUM IN-CARD VIDEO PLAYER ─── */
@@ -400,69 +388,85 @@ export default function Hero() {
             onClick={handlePlayClick}
             style={{ cursor: videoUrl && !isPlaying ? 'pointer' : 'default' }}
           >
-            {isPlaying && videoUrl ? (
+            {/* Stable HTML5 Video Player */}
+            {videoUrl && sourceType !== 'youtube' && sourceType !== 'vimeo' && (
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                controls
+                playsInline
+                onLoadedMetadata={() => {
+                  setHasLoaded(true);
+                  setIsLoading(false);
+                }}
+                onCanPlay={() => {
+                  setHasLoaded(true);
+                  setIsLoading(false);
+                }}
+                onWaiting={() => {
+                  setIsLoading(true);
+                }}
+                onPlaying={() => {
+                  setIsLoading(false);
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  background: '#000',
+                  border: 'none',
+                  display: isPlaying ? 'block' : 'none'
+                }}
+              />
+            )}
+
+            {/* iframe Video Player (Vimeo / YouTube) */}
+            {isPlaying && videoUrl && (sourceType === 'youtube' || sourceType === 'vimeo') && (
               <div className="video-fade-in" style={{ width: '100%', height: '100%' }}>
-                {isLoading && (
-                  <div className="video-loader">
-                    <div className="spinner"></div>
-                    <span>Loading Video...</span>
-                  </div>
-                )}
-                {sourceType === 'youtube' || sourceType === 'vimeo' ? (
-                  <iframe
-                      width="100%"
-                      height="100%"
-                      src={(() => {
-                        let embedUrl = videoUrl;
-                        if (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be')) {
-                          let videoId = '';
-                          if (embedUrl.includes('youtube.com/watch')) {
-                            const urlParams = new URLSearchParams(new URL(embedUrl).search);
-                            videoId = urlParams.get('v');
-                          } else if (embedUrl.includes('youtu.be/')) {
-                            videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-                          } else if (embedUrl.includes('youtube.com/embed/')) {
-                            videoId = embedUrl.split('youtube.com/embed/')[1]?.split('?')[0];
-                          }
-                          embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : embedUrl;
-                        } else if (embedUrl.includes('vimeo.com')) {
-                          if (!embedUrl.includes('player.vimeo.com/video/')) {
-                            const matches = embedUrl.match(/vimeo\.com\/(\d+)/);
-                            if (matches && matches[1]) {
-                              embedUrl = `https://player.vimeo.com/video/${matches[1]}`;
-                            }
-                          }
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={(() => {
+                    let embedUrl = videoUrl;
+                    if (embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be')) {
+                      let videoId = '';
+                      if (embedUrl.includes('youtube.com/watch')) {
+                        const urlParams = new URLSearchParams(new URL(embedUrl).search);
+                        videoId = urlParams.get('v');
+                      } else if (embedUrl.includes('youtu.be/')) {
+                        videoId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+                      } else if (embedUrl.includes('youtube.com/embed/')) {
+                        videoId = embedUrl.split('youtube.com/embed/')[1]?.split('?')[0];
+                      }
+                      embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : embedUrl;
+                    } else if (embedUrl.includes('vimeo.com')) {
+                      if (!embedUrl.includes('player.vimeo.com/video/')) {
+                        const matches = embedUrl.match(/vimeo\.com\/(\d+)/);
+                        if (matches && matches[1]) {
+                          embedUrl = `https://player.vimeo.com/video/${matches[1]}`;
                         }
-                        const sep = embedUrl.includes('?') ? '&' : '?';
-                        return `${embedUrl}${sep}autoplay=1&mute=0&controls=1`;
-                      })()}
-                      title="Levlox Tech Brand Story"
-                      frameBorder="0"
-                      allow="autoplay; encrypted-media; picture-in-picture; clipboard-write; encrypted-media; gyroscope"
-                      allowFullScreen
-                      onLoad={() => setIsLoading(false)}
-                      style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                  ></iframe>
-                ) : (
-                  <video
-                      src={videoUrl}
-                      controls
-                      autoPlay
-                      playsInline
-                      onLoadedData={() => setIsLoading(false)}
-                      onCanPlay={() => setIsLoading(false)}
-                      onPlay={() => setIsLoading(false)}
-                      onPlaying={() => setIsLoading(false)}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#000', border: 'none', display: 'block' }}
-                  />
-                )}
+                      }
+                    }
+                    const sep = embedUrl.includes('?') ? '&' : '?';
+                    return `${embedUrl}${sep}autoplay=1&mute=0&controls=1`;
+                  })()}
+                  title="Levlox Tech Brand Story"
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media; picture-in-picture; clipboard-write; encrypted-media; gyroscope"
+                  allowFullScreen
+                  onLoad={() => setIsLoading(false)}
+                  style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                ></iframe>
               </div>
-            ) : (
+            )}
+
+            {/* Thumbnail Overlay (only visible before playing) */}
+            {!isPlaying && (
               <>
                 <img 
-                    src={thumbnailUrl || "/brand_story_thumb.png"} 
-                    alt="Levlox Brand Story Preview" 
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
+                  src={thumbnailUrl || "/brand_story_thumb.png"} 
+                  alt="Levlox Brand Story Preview" 
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80' }} 
                 />
                 {videoUrl && (
                   <div className="play-button-overlay">
@@ -474,12 +478,14 @@ export default function Hero() {
                 )}
               </>
             )}
-          </div>
-          
-          {/* Typography for Video Title & Description */}
-          <div className="video-meta-info">
-            <h3 className="video-meta-title">Levlox Brand Story</h3>
-            <p className="video-meta-desc">Watch how our structured cohort path lands students in top tech roles in 90 days.</p>
+
+            {/* Loader (shows if loading or buffering) */}
+            {isLoading && isPlaying && (
+              <div className="video-loader">
+                <div className="spinner"></div>
+                <span>Loading Video...</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -494,7 +500,7 @@ export default function Hero() {
             className="hero-cta-btn"
             onClick={scrollToPathways} 
           >
-            Get Your Custom Company Pathway &rarr;
+            Company Pathway &rarr;
           </button>
         </div>
 

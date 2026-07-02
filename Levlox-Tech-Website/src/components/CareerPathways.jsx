@@ -115,7 +115,14 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
             return {
               id: c._id,
               _id: c._id,
-              badge: stripEmojis(c.badge || c.badgeText || 'FREE'),
+              badge: (() => {
+                const b = stripEmojis(c.badge || c.badgeText || 'FREE');
+                const titleUpper = (c.title || '').toUpperCase();
+                if (b.toUpperCase() === 'START HERE' || titleUpper.includes('GET HIRED')) {
+                  return 'FREE';
+                }
+                return b;
+              })(),
               title: stripEmojis(c.title),
               subtitle: stripEmojis(c.subtitle || c.desc || c.shortDescription || ''),
               isAvailable: true,

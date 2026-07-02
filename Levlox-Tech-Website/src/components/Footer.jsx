@@ -382,6 +382,80 @@ export default function Footer() {
           .footer-bottom { flex-direction: column; text-align: center; justify-content: center; }
           .footer-links a { margin: 0 12px; }
         }
+
+        /* ─── GOOGLE MAP CARD ─── */
+        .map-card {
+          width: 100%;
+          border-radius: 20px;
+          border: 1px solid #E8EAF2;
+          overflow: hidden;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+          background: #ffffff;
+          display: flex;
+          flex-direction: column;
+          margin-top: 24px;
+        }
+
+        .map-iframe-container {
+          position: relative;
+          width: 100%;
+          height: 320px; /* desktop */
+        }
+
+        @media (max-width: 992px) {
+          .map-iframe-container {
+            height: 250px; /* tablet */
+          }
+        }
+
+        @media (max-width: 640px) {
+          .map-iframe-container {
+            height: 220px; /* mobile */
+          }
+        }
+
+        .map-info-bar {
+          padding: 16px 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #ffffff;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .map-info-text {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .map-info-title {
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        .map-info-sub {
+          font-size: 12px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .map-btn {
+          padding: 8px 16px;
+          background: #6b21e8;
+          color: #ffffff;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 750;
+          text-decoration: none;
+          transition: all 0.2s;
+        }
+
+        .map-btn:hover {
+          background: #5b1bc6;
+        }
       `}</style>
 
       <div className="footer-container">
@@ -422,28 +496,79 @@ export default function Footer() {
             <div className="info-group">
               <h4>Headquarters</h4>
               <div className="contact-item">
-                <a
-                  href="https://www.google.com/maps/place/10%C2%B044'04.1%22N+78%C2%B045'25.6%22E/@10.7344606,78.7545449,17z/data=!3m1!4b1!4m4!3m3!8m2!3d10.7344606!4d78.7571198?hl=en&entry=ttu"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'flex-start', gap: '16px' }}
-                >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', color: '#475569' }}>
                   <div className="icon-box" style={{ flexShrink: 0 }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                   </div>
-                  <span style={{ lineHeight: 1.5 }}>
+                  <span style={{ lineHeight: 1.5, color: '#475569', fontWeight: 500 }}>
                     L-2-1754-A, 120 feet road,<br />Anna Nagar, Trichy, Tamil Nadu 620026
-                    <span style={{ display: 'block', fontSize: '11px', color: '#6b21e8', fontWeight: 700, marginTop: '4px' }}>View on Google Maps →</span>
                   </span>
-                </a>
+                </div>
               </div>
 
-              <div className="social-links">
-                <a href="https://www.linkedin.com/company/levlox-tech/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-                <a href="https://www.instagram.com/levloxtech?igsh=MWd1enJvNGxkcWxheQ==" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Tech)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
-                <a href="https://www.instagram.com/levloxacademy?igsh=bGV4emdrdHJ1MDd5" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Academy)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+              {/* GOOGLE MAP CARD */}
+              <div className="map-card" style={{ marginTop: '16px', marginBottom: '24px' }}>
+                <div className="map-iframe-container" style={{ position: 'relative', background: '#e5e7eb' }}>
+                  {/* Invisible Link Overlay to make the whole map clickable */}
+                  <a 
+                    href="https://www.google.com/maps/place/10%C2%B044'04.1%22N+78%C2%B045'25.6%22E/@10.7344606,78.7571198" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ position: 'absolute', inset: 0, zIndex: 3, cursor: 'pointer' }}
+                    aria-label="Open LevLox Headquarters in Google Maps"
+                  />
+
+                  {/* Fallback Static Map Preview */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=600&q=80')",
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    padding: '20px', color: '#1e293b', zIndex: 1
+                  }}>
+                    <span style={{ fontSize: '24px', marginBottom: '8px' }}>🗺️</span>
+                    <span style={{ fontWeight: '700', fontSize: '14px', textAlign: 'center', color: '#0f172a' }}>Interactive Map Unavailable</span>
+                    <span style={{ fontSize: '11px', color: '#475569', textAlign: 'center', marginTop: '4px', maxWidth: '200px' }}>Use the button below to view location on Google Maps.</span>
+                  </div>
+                  
+                  {/* Embedded Interactive Map */}
+                  <iframe
+                    title="LevLox Headquarters Location Map"
+                    src="https://maps.google.com/maps?q=10.7344606,78.7571198&z=15&output=embed"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0, position: 'relative', zIndex: 2, background: 'transparent' }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
+                <div className="map-info-bar">
+                  <div className="map-info-text">
+                    <p className="map-info-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px', color: '#6b21e8', flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                      <span>LevLox Headquarters</span>
+                    </p>
+                    <p className="map-info-sub">Anna Nagar, Trichy, Tamil Nadu</p>
+                  </div>
+                  <a 
+                    href="https://www.google.com/maps/place/10%C2%B044'04.1%22N+78%C2%B045'25.6%22E/@10.7344606,78.7571198" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="map-btn"
+                  >
+                    Open in Google Maps
+                  </a>
+                </div>
               </div>
+
+            <div className="social-links" style={{ marginTop: '0px' }}>
+              <a href="https://www.linkedin.com/company/levlox-tech/posts/?feedView=all" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+              <a href="https://www.instagram.com/levloxtech?igsh=MWd1enJvNGxkcWxheQ==" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Tech)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+              <a href="https://www.instagram.com/levloxacademy?igsh=bGV4emdrdHJ1MDd5" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram (Levlox Academy)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
             </div>
+          </div>
+
 
           </div>
 
