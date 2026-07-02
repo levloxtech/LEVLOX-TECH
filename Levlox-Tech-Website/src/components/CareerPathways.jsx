@@ -118,7 +118,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
               badge: (() => {
                 const b = stripEmojis(c.badge || c.badgeText || 'FREE');
                 const titleUpper = (c.title || '').toUpperCase();
-                if (b.toUpperCase() === 'START HERE' || titleUpper.includes('GET HIRED')) {
+                if (b.toUpperCase() === 'START HERE' || b.toUpperCase() === 'FREE' || titleUpper.includes('GET HIRED')) {
                   return 'FREE';
                 }
                 return b;
@@ -131,7 +131,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
             };
           });
           setCourses(normalized);
-          
+
           // Determine highlighted card index based on is_featured field or saved index
           const savedActiveIndex = localStorage.getItem('careerPathways_activeIndex');
           if (savedActiveIndex !== null) {
@@ -255,7 +255,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
 
     const title = detailCourseData?.course?.title || selectedDetailCourse.title;
     const subtitle = detailCourseData?.course?.subtitle || detailCourseData?.course?.desc || selectedDetailCourse.subtitle;
-    
+
     // Extract module/lesson names dynamically
     const lessons = [];
     if (detailCourseData && detailCourseData.modules) {
@@ -300,43 +300,43 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
             <form onSubmit={handleMentorshipSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="f-group">
                 <label className="f-label">Full Name <span style={{ color: '#ef4444' }}>*</span></label>
-                <input 
-                  type="text" 
-                  required 
-                  value={userName} 
-                  onChange={(e) => setUserName(e.target.value)} 
-                  placeholder="John" 
+                <input
+                  type="text"
+                  required
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="John"
                   className="f-input"
                 />
               </div>
 
               <div className="f-group">
                 <label className="f-label">Email Address <span style={{ color: '#ef4444' }}>*</span></label>
-                <input 
-                  type="email" 
-                  required 
-                  value={userEmail} 
-                  onChange={(e) => setUserEmail(e.target.value)} 
-                  placeholder="john@gmail.com" 
+                <input
+                  type="email"
+                  required
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="john@gmail.com"
                   className="f-input"
                 />
               </div>
 
               <div className="f-group">
                 <label className="f-label">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
-                <input 
-                  type="tel" 
-                  required 
-                  value={userPhone} 
-                  onChange={(e) => setUserPhone(e.target.value)} 
-                  placeholder="+91 98765 43210" 
+                <input
+                  type="tel"
+                  required
+                  value={userPhone}
+                  onChange={(e) => setUserPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
                   className="f-input"
                 />
               </div>
 
               <div className="f-group">
                 <label className="f-label">Student / Professional</label>
-                <select 
+                <select
                   className="f-input"
                   value={userType}
                   onChange={(e) => setUserType(e.target.value)}
@@ -348,12 +348,12 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
 
               <div className="f-group">
                 <label className="f-label">Upload Resume <span style={{ color: '#ef4444' }}>*</span></label>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   required
                   accept={uploadConfig?.resume?.extensions ? uploadConfig.resume.extensions.map(ext => `.${ext}`).join(',') : ".pdf,.doc,.docx"}
-                  className="f-input" 
-                  style={{ padding: '10px' }} 
+                  className="f-input"
+                  style={{ padding: '10px' }}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -383,13 +383,13 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
 
               <div className="f-group">
                 <label className="f-label">What Is Your Goal? <span style={{ color: '#ef4444' }}>*</span></label>
-                <textarea 
+                <textarea
                   required
-                  rows="4" 
-                  className="f-input" 
+                  rows="4"
+                  className="f-input"
                   value={userGoal}
                   onChange={(e) => setUserGoal(e.target.value)}
-                  placeholder="Type your target role here..." 
+                  placeholder="Type your target role here..."
                   style={{ resize: 'vertical' }}
                 ></textarea>
               </div>
@@ -584,7 +584,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
       `}</style>
 
       <div className="pathways-container">
-        
+
         {/* Section Header */}
         <div className="pathways-header">
           <h2 className="pathways-title">Career Pathways</h2>
@@ -592,7 +592,7 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
             Learn the systems behind getting hired, growing faster, transitioning into better opportunities, and becoming a top performer.
           </p>
         </div>
-        
+
         {/* Course Grid */}
         <div className="pathways-grid">
           {courses.length === 0 ? (
@@ -602,10 +602,10 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
           ) : (
             courses.map((course, idx) => {
               const isHigh = idx === activeIndex;
-              
+
               return (
-                <div 
-                  key={course.id} 
+                <div
+                  key={course.id}
                   className={`pathway-card ${isHigh ? 'highlight' : 'standard'}`}
                   onClick={() => {
                     setActiveIndex(idx);
@@ -616,16 +616,16 @@ export default function CareerPathways({ onSelectCourse, onDetailActive }) {
                   <div className={`card-badge ${isHigh ? 'highlight' : 'standard'}`}>
                     {course.badge}
                   </div>
-                  
+
                   <h3 className="card-title">
                     {course.title}
                   </h3>
-                  
+
                   <p className="card-subtitle">
                     {course.subtitle}
                   </p>
-  
-                  <button 
+
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       const courseId = course._id || course.id;

@@ -112,7 +112,7 @@ def get_courses():
                 "duration": "15 mins read",
                 "level": "All Levels",
                 "enrolled": "Free Access",
-                "badge": "START HERE",
+                "badge": "FREE",
                 "badgeClass": "badge-free",
                 "price": "Start Reading",
                 "thumbBg": "c-thumb-2",
@@ -176,7 +176,8 @@ def get_courses():
         ]
 
         # Pre-migration: update old title formats to new format in database
-        db.courses.update_one({"title": "🎯 Get Hired"}, {"$set": {"title": "GET HIRED", "desc": "The Hiring Formula", "badge": "START HERE", "thumbIcon": ""}})
+        db.courses.update_one({"title": "🎯 Get Hired"}, {"$set": {"title": "GET HIRED", "desc": "The Hiring Formula", "badge": "FREE", "thumbIcon": ""}})
+        db.courses.update_one({"title": "GET HIRED"}, {"$set": {"badge": "FREE"}})
         db.courses.update_one({"title": "📈 Get Promoted"}, {"$set": {"title": "GET PROMOTED", "desc": "The Career Acceleration Formula", "badge": "FREE", "thumbIcon": ""}})
         db.courses.update_one({"title": "🚀 Escape Service Companies"}, {"$set": {"title": "ESCAPE SERVICE COMPANIES", "desc": "The Product Company Formula", "badge": "FREE", "thumbIcon": ""}})
         db.courses.update_one({"title": "⚡ Think Like Elite Engineers"}, {"$set": {"title": "ELITE ENGINEER", "desc": "The Top 1% Formula", "badge": "FREE", "thumbIcon": ""}})
